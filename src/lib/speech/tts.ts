@@ -1,0 +1,108 @@
+import { useSettings } from '../../store/settings'
+
+export const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
+
+let voices: SpeechSynthesisVoice[] = []
+const listeners = new Set<() => void>()
+
+function loadVoices() {
+  if (!ttsSupported) return
+  voices = window.speechSynthesis.getVoices()
+  listeners.forEach((l) => l())
+}
+
+if (ttsSupported) {
+  loadVoices()
+  window.speechSynthesis.addEventListener?.('voiceschanged', loadVoices)
+}
+
+export function onVoicesChanged(fn: () => void) {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+export function spanishVoices(): SpeechSynthesisVoice[] {
+  return voices
+    .filter((v) => v.lang.toLowerCase().startsWith('es'))
+    .sort((a, b) => scoreVoice(b) - scoreVoice(a))
+}
+
+const GOOD = /(Mónica|Monica|Jorge|Marisol|Paulina|Google español|Helena|Laura|Elvira|Álvaro|Alvaro|Dalia|Jimena|Lucia|Lucía|Premium|Enhanced|Natural|Neural)/i
+
+function scoreVoice(v: SpeechSynthesisVoice): number {
+  let s = 0
+  const lang = v.lang.toLowerCase().replace('_', '-')
+  if (lang === 'es-es') s += 10
+  else if (lang.startsWith('es')) s += 4
+  if (GOOD.test(v.name)) s += 5
+  if (/(Natural|Neural|Premium|Enhanced)/i.test(v.name)) s += 3
+  if (/(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)/.test(v.name)) s -= 4
+  return s
+}
+
+function pickVoice(): SpeechSynthesisVoice | undefined {
+  const uri = useSettings.getState().voiceURI
+  const list = spanishVoices()
+  return (uri && list.find((v) => v.voiceURI === uri)) || list[0]
+}
+
+let seq = 0
+/** bumps whenever playback is taken over, so running sequences stop */
+let playToken = 0
+
+export interface SpeakOptions {
+  /** multiplier on the user's base rate */
+  speed?: number
+  /** absolute rate, overrides speed */
+  rate?: number
+  onBoundary?: (charIndex: number) => void
+}
+
+/** Speak Spanish text. Resolves when finished or cancelled. */
+export function speak(text: string, opts: SpeakOptions = {}, fromSequence = false): Promise<void> {
+  if (!fromSequence) playToken++
+  if (!ttsSupported || !text.trim()) return Promise.resolve()
+  const synth = window.speechSynthesis
+  synth.cancel()
+  const my = ++seq
+  return new Promise((resolve) => {
+    const u = new SpeechSynthesisUtterance(text)
+    const v = pickVoice()
+    if (v) u.voice = v
+    u.lang = v?.lang ?? 'es-ES'
+    const base = useSettings.getState().rate
+    u.rate = clamp(opts.rate ?? base * (opts.speed ?? 1), 0.3, 2)
+    u.onend = () => resolve()
+    u.onerror = () => resolve()
+    if (opts.onBoundary) u.onboundary = (e) => opts.onBoundary!(e.charIndex)
+    // Chrome occasionally drops an utterance queued in the same tick as cancel()
+    setTimeout(() => {
+      if (my === seq) synth.speak(u)
+      else resolve()
+    }, 30)
+  })
+}
+
+export function stopSpeaking() {
+  seq++
+  playToken++
+  if (ttsSupported) window.speechSynthesis.cancel()
+}
+
+/** Speak a list of sentences one by one, reporting the current index. Returns false if interrupted. */
+export async function speakSequence(items: string[], opts: SpeakOptions & { onItem?: (i: number) => void; startAt?: number } = {}) {
+  const token = ++playToken
+  for (let i = opts.startAt ?? 0; i < items.length; i++) {
+    if (token !== playToken) return false
+    opts.onItem?.(i)
+    await speak(items[i], opts, true)
+    if (token !== playToken) return false
+    await new Promise((r) => setTimeout(r, 180))
+  }
+  opts.onItem?.(-1)
+  return true
+}
+
+function clamp(x: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, x))
+}
