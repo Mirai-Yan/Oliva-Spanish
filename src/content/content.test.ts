@@ -17,6 +17,14 @@ function dupes(ids: string[]) {
 }
 
 describe('content integrity', () => {
+  it('extra words are well formed', () => {
+    for (const w of db.words.filter((x) => !x.unit)) {
+      expect(w.es.trim(), w.id).not.toBe('')
+      expect(w.zh.trim(), w.id).not.toBe('')
+      if (w.pos === 'n') expect(w.g, `${w.id} needs gender`).toBeTruthy()
+    }
+  })
+
   it('ids are unique', () => {
     expect(dupes(db.words.map((w) => w.id))).toEqual([])
     expect(dupes(db.grammar.map((g) => g.id))).toEqual([])

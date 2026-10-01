@@ -124,6 +124,12 @@ describe('Spanish spelling in course content', () => {
       }
       check(`${u.id}.titleEs`, u.titleEs, hits)
     }
+    for (const w of db.words.filter((x) => !x.unit)) {
+      check(`${w.id}.es`, w.es, hits)
+      check(`${w.id}.f`, w.f, hits)
+      check(`${w.id}.pl`, w.pl, hits)
+      check(`${w.id}.ex`, w.ex?.[0], hits)
+    }
     expect(hits.map((h) => `${h.where}: «${h.word}» in "${h.text}"`)).toEqual([])
   })
 })
