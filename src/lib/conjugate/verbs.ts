@@ -203,6 +203,7 @@ export const VERBS: Record<string, VerbSpec> = {
 
   // o → ue
   contar: { stem: 'ue' },
+  volcar: { stem: 'ue' },
   costar: { stem: 'ue' },
   encontrar: { stem: 'ue' },
   recordar: { stem: 'ue' },
@@ -268,6 +269,7 @@ export const VERBS: Record<string, VerbSpec> = {
   reenviar: { stem: 'acc-i' },
   desconfiar: { stem: 'acc-i' },
   ansiar: { stem: 'acc-i' },
+  averiar: { stem: 'acc-i' },
   confiar: { stem: 'acc-i' },
   guiar: { stem: 'acc-i' },
   criar: { stem: 'acc-i' },
