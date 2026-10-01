@@ -10,5 +10,7 @@ import { u08 } from './u08'
 import { u09 } from './u09'
 import { u10 } from './u10'
 
-const pack: LevelPack = { level: 'A2', units: [u01, u02, u03, u04, u05, u06, u07, u08, u09, u10] }
+import { a2Extra } from './extra'
+
+const pack: LevelPack = { level: 'A2', units: [u01, u02, u03, u04, u05, u06, u07, u08, u09, u10], extraWords: a2Extra }
 export default pack
