@@ -1,6 +1,6 @@
 import { Flame, Sparkles, Zap } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Mascot } from '../components/Mascot'
 import { Ring } from '../components/ProgressBar'
 import { useStreak, useTodayXp } from '../store/progress'
@@ -78,7 +78,15 @@ export function Layout() {
 
         <div className="mx-auto flex max-w-[1100px] gap-8 px-4 pb-28 pt-5 md:px-6 lg:pb-12 lg:pt-8">
           <main className="min-w-0 flex-1">
-            <Outlet />
+            <Suspense
+              fallback={
+                <div className="flex min-h-[40vh] items-center justify-center">
+                  <Mascot size={56} className="anim-bob" />
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </main>
           <div className="hidden w-80 shrink-0 xl:block">
             <SidePanel />

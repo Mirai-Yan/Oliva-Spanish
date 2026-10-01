@@ -86,6 +86,14 @@ export interface AiReadingRow {
   createdAt: number
 }
 
+/** cached Gemini TTS audio */
+export interface TtsRow {
+  /** voice | text */
+  id: string
+  blob: Blob
+  createdAt: number
+}
+
 export const db = new Dexie('oliva') as Dexie & {
   cards: EntityTable<CardRow, 'wordId'>
   reviews: EntityTable<ReviewRow, 'id'>
@@ -95,6 +103,7 @@ export const db = new Dexie('oliva') as Dexie & {
   chats: EntityTable<ChatRow, 'id'>
   aiDict: EntityTable<AiDictRow, 'key'>
   aiReadings: EntityTable<AiReadingRow, 'id'>
+  tts: EntityTable<TtsRow, 'id'>
 }
 
 db.version(1).stores({
@@ -106,4 +115,8 @@ db.version(1).stores({
   chats: 'id, kind, updatedAt',
   aiDict: 'key',
   aiReadings: 'id, createdAt',
+})
+
+db.version(2).stores({
+  tts: 'id, createdAt',
 })

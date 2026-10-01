@@ -260,3 +260,112 @@ export async function listModels(override?: Partial<GeminiSettings>): Promise<Mo
     .map((m) => ({ id: m.name.replace(/^models\//, ''), name: m.displayName ?? m.name }))
     .sort((a, b) => versionOf(b.id) - versionOf(a.id) || a.id.localeCompare(b.id))
 }
+
+// ---------- text to speech ----------
+
+/** Used when the TTS model cannot be detected. */
+export const TTS_FALLBACK_MODEL = 'gemini-3.8-flash-lite-tts'
+
+/** Newest TTS model, preferring the cheaper Flash-Lite one that is meant for read-aloud features. */
+export function pickTtsModel(ids: string[]): string | null {
+  const tts = ids.filter((id) => /-tts\b/.test(id))
+  if (!tts.length) return null
+  const score = (id: string) => versionOf(id) * 10 + (/flash-lite/.test(id) ? 3 : /flash/.test(id) ? 2 : 0) - (/preview/.test(id) ? 1 : 0)
+  return [...tts].sort((a, b) => score(b) - score(a))[0]
+}
+
+let ttsModelCache: string | null = null
+
+async function ttsModel(refresh = false): Promise<string> {
+  if (ttsModelCache && !refresh) return ttsModelCache
+  const c = cfg()
+  try {
+    const res = await fetch(`${base(c)}/v1beta/models?pageSize=200`, { headers: { 'x-goog-api-key': c.apiKey.trim() } })
+    if (res.ok) {
+      const j = (await res.json()) as { models?: { name: string }[] }
+      ttsModelCache = pickTtsModel((j.models ?? []).map((m) => m.name.replace(/^models\//, ''))) ?? TTS_FALLBACK_MODEL
+      return ttsModelCache
+    }
+  } catch {
+    /* fall back below */
+  }
+  ttsModelCache = TTS_FALLBACK_MODEL
+  return ttsModelCache
+}
+
+/** First audio payload in an Interactions or generateContent response. */
+export function findAudio(json: unknown): { data: string; mimeType?: string } | null {
+  let found: { data: string; mimeType?: string } | null = null
+  const walk = (o: unknown) => {
+    if (found || !o || typeof o !== 'object') return
+    const r = o as Record<string, unknown>
+    const mime = (typeof r.mimeType === 'string' ? r.mimeType : typeof r.mime_type === 'string' ? r.mime_type : undefined) as string | undefined
+    if (typeof r.data === 'string' && (r.type === 'audio' || (mime && /audio/i.test(mime)))) {
+      found = { data: r.data, mimeType: mime }
+      return
+    }
+    for (const v of Object.values(r)) walk(v)
+  }
+  walk(json)
+  return found
+}
+
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64)
+  const out = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i)
+  return out
+}
+
+export interface SpeechAudio {
+  bytes: Uint8Array
+  mimeType: string
+  model: string
+}
+
+const TTS_STYLE = 'Clear, natural Castilian Spanish from Spain, at a calm pace for language learners'
+
+/** Read Spanish text aloud with a Gemini TTS model (Interactions API, with a generateContent fallback). */
+export async function synthesizeSpeech(text: string, voice: string, signal?: AbortSignal): Promise<SpeechAudio> {
+  const c = cfg()
+  requireKey(c)
+  const headers = { 'Content-Type': 'application/json', 'x-goog-api-key': c.apiKey.trim() }
+  let model = await ttsModel()
+  const call = async (legacy: boolean) => {
+    const url = legacy ? `${base(c)}/v1beta/${modelPath(model)}:generateContent` : `${base(c)}/v1beta/interactions`
+    const payload = legacy
+      ? {
+          contents: [{ parts: [{ text: `Read in a clear Castilian Spanish accent: ${text}` }] }],
+          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
+        }
+      : {
+          model,
+          input: [{ type: 'user_input', content: [{ type: 'text', text, annotations: [{ type: 'speech_metadata', style: TTS_STYLE }] }] }],
+          response_format: { type: 'audio' },
+          generation_config: { speech_config: [{ voice }] },
+        }
+    try {
+      return await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal })
+    } catch (e) {
+      throw networkError(e)
+    }
+  }
+  let res = await call(false)
+  if (res.status === 404) {
+    const next = await ttsModel(true)
+    if (next !== model) {
+      model = next
+      res = await call(false)
+    }
+  }
+  // relays or older models without the Interactions API
+  if (res.status === 404 || res.status === 405) res = await call(true)
+  if (res.status === 429) {
+    await sleep(2500)
+    res = await call(false)
+  }
+  if (!res.ok) throw await explain(res, model)
+  const audio = findAudio(await res.json())
+  if (!audio) throw new GeminiError('Gemini 没有返回音频', 0)
+  return { bytes: b64ToBytes(audio.data), mimeType: audio.mimeType ?? 'audio/wav', model }
+}

@@ -1,4 +1,5 @@
 import { useSettings } from '../../store/settings'
+import { hqEnabled, playHq, prefetchHq, stopHq } from './hqVoice'
 
 export const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -80,19 +81,33 @@ export interface SpeakOptions {
 }
 
 /** Speak Spanish text. Resolves when finished or cancelled. */
-export function speak(text: string, opts: SpeakOptions = {}, fromSequence = false): Promise<void> {
+export async function speak(text: string, opts: SpeakOptions = {}, fromSequence = false): Promise<void> {
   if (!fromSequence) playToken++
-  if (!ttsSupported || !text.trim()) return Promise.resolve()
+  if (!text.trim()) return
+  const rate = clamp(opts.rate ?? useSettings.getState().rate * (opts.speed ?? 1), 0.3, 2)
+  if (hqEnabled()) {
+    if (ttsSupported) window.speechSynthesis.cancel()
+    stopHq()
+    const my = ++seq
+    try {
+      await playHq(text, rate, () => my === seq)
+      return
+    } catch {
+      if (my !== seq) return
+      // fall back to the browser voice below
+    }
+  }
+  if (!ttsSupported) return
   const synth = window.speechSynthesis
   synth.cancel()
+  stopHq()
   const my = ++seq
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text)
     const v = pickVoice(opts.lang)
     if (v) u.voice = v
     u.lang = v?.lang ?? opts.lang ?? 'es-ES'
-    const base = useSettings.getState().rate
-    u.rate = clamp(opts.rate ?? base * (opts.speed ?? 1), 0.3, 2)
+    u.rate = rate
     u.onend = () => resolve()
     u.onerror = () => resolve()
     if (opts.onBoundary) u.onboundary = (e) => opts.onBoundary!(e.charIndex)
@@ -107,6 +122,7 @@ export function speak(text: string, opts: SpeakOptions = {}, fromSequence = fals
 export function stopSpeaking() {
   seq++
   playToken++
+  stopHq()
   if (ttsSupported) window.speechSynthesis.cancel()
 }
 
@@ -116,6 +132,7 @@ export async function speakSequence(items: string[], opts: SpeakOptions & { onIt
   for (let i = opts.startAt ?? 0; i < items.length; i++) {
     if (token !== playToken) return false
     opts.onItem?.(i)
+    if (i + 1 < items.length) prefetchHq(items[i + 1])
     await speak(items[i], opts, true)
     if (token !== playToken) return false
     await new Promise((r) => setTimeout(r, 180))

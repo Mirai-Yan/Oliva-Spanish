@@ -28,6 +28,10 @@ export interface Settings {
   showZh: boolean
   /** has seen the first-visit choice (start from zero / placement test) */
   onboarded: boolean
+  /** read aloud with Gemini TTS when an API key is set */
+  hqVoice: boolean
+  /** Gemini prebuilt voice name */
+  hqVoiceName: string
 }
 
 export const DEFAULT_GEMINI: GeminiSettings = {
@@ -54,6 +58,8 @@ const DEFAULTS: Settings = {
   freeMode: false,
   showZh: true,
   onboarded: false,
+  hqVoice: false,
+  hqVoiceName: 'Kore',
 }
 
 interface SettingsStore extends Settings {

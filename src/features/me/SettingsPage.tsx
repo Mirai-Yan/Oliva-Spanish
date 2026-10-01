@@ -4,10 +4,11 @@ import { useLocation } from 'react-router-dom'
 import { PageHeader } from '../../components/PageHeader'
 import { Sheet } from '../../components/Sheet'
 import { THEMES, suggestAccent, type Mode } from '../../theme/themes'
-import { DEFAULT_GEMINI, useSettings } from '../../store/settings'
+import { DEFAULT_GEMINI, hasAI, useSettings } from '../../store/settings'
 import { useProgress } from '../../store/progress'
 import { onVoicesChanged, spanishVoices, speak, ttsSupported } from '../../lib/speech/tts'
 import { generate, listModels } from '../../lib/gemini/client'
+import { clearHqCache, hqCacheSize, resetHq } from '../../lib/speech/hqVoice'
 import { exportBackup, importBackup, resetAll } from './backup'
 
 function Card({ id, icon, title, children }: { id?: string; icon: ReactNode; title: string; children: ReactNode }) {
@@ -46,6 +47,81 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
     >
       <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-7' : 'left-1'}`} />
     </button>
+  )
+}
+
+const HQ_VOICES = [
+  { v: 'Kore', label: 'Kore（女声，沉稳）' },
+  { v: 'Leda', label: 'Leda（女声，年轻）' },
+  { v: 'Aoede', label: 'Aoede（女声，轻快）' },
+  { v: 'Zephyr', label: 'Zephyr（女声，明亮）' },
+  { v: 'Puck', label: 'Puck（男声，活泼）' },
+  { v: 'Charon', label: 'Charon（男声，讲解）' },
+  { v: 'Orus', label: 'Orus（男声，坚定）' },
+  { v: 'Fenrir', label: 'Fenrir（男声，有力）' },
+]
+
+/** Optional Gemini TTS: better Spain-accent voice, cached per sentence. */
+function HqVoiceRows() {
+  const s = useSettings()
+  const ai = hasAI(s)
+  const [cached, setCached] = useState(0)
+  useEffect(() => {
+    hqCacheSize().then(setCached)
+  }, [s.hqVoice, s.hqVoiceName])
+  return (
+    <>
+      <Row
+        label="高音质朗读（Gemini 语音）"
+        hint={
+          ai
+            ? '用 Gemini 的语音模型朗读，西班牙口音更自然。会用到免费额度；读过的句子缓存在本机，不会重复请求；出错时自动换回系统声音。'
+            : '需要先在下方「AI 助手」里填入 Gemini API Key。'
+        }
+      >
+        <Toggle
+          label="高音质朗读"
+          on={s.hqVoice && ai}
+          onChange={(hqVoice) => {
+            resetHq()
+            s.set({ hqVoice: hqVoice && ai })
+          }}
+        />
+      </Row>
+      {s.hqVoice && ai && (
+        <Row label="Gemini 声音" hint={`已缓存 ${cached} 条语音`}>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={s.hqVoiceName}
+              onChange={(e) => {
+                resetHq()
+                s.set({ hqVoiceName: e.target.value })
+              }}
+              className="input !w-auto max-w-[220px] !py-2"
+            >
+              {HQ_VOICES.map((o) => (
+                <option key={o.v} value={o.v}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => speak('Hola, soy tu profesora de español. ¡Vamos a aprender juntos!')}>
+              试听
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={async () => {
+                await clearHqCache()
+                setCached(0)
+              }}
+            >
+              清除缓存
+            </button>
+          </div>
+        </Row>
+      )}
+    </>
   )
 }
 
@@ -187,6 +263,7 @@ export function SettingsPage() {
             </button>
           </div>
         </Row>
+        <HqVoiceRows />
         <Row label="自动播放发音" hint="题目出现时自动朗读">
           <Toggle label="自动播放发音" on={s.autoplay} onChange={(autoplay) => s.set({ autoplay })} />
         </Row>
