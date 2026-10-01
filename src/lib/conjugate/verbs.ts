@@ -362,6 +362,8 @@ export const DERIVED: Record<string, [string, string]> = {
   suscribir: ['sus', 'cribir'],
   prescribir: ['pres', 'cribir'],
   transcribir: ['trans', 'cribir'],
+  circunscribir: ['circuns', 'cribir'],
+  proscribir: ['pros', 'cribir'],
   interponer: ['inter', 'poner'],
   anteponer: ['ante', 'poner'],
   deponer: ['de', 'poner'],
