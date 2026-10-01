@@ -5,6 +5,7 @@ import { build, type LevelPack } from './index'
 import a0 from './a0'
 import a1 from './a1'
 import a2 from './a2'
+import b1 from './b1'
 import { conjugate, gerund, participle, isVerbInfinitive, type Tense } from '../lib/conjugate'
 import { DERIVED, VERBS } from '../lib/conjugate/verbs'
 import { NAMES } from './names'
@@ -17,7 +18,7 @@ import { SCENARIOS } from './roleplay'
  */
 
 const spell = nspell(dict as unknown as { aff: Buffer; dic: Buffer })
-const packs: LevelPack[] = [a0, a1, a2]
+const packs: LevelPack[] = [a0, a1, a2, b1]
 const db = build(packs)
 
 // names, places and foreign words that a Spanish dictionary does not list
@@ -25,7 +26,7 @@ const ALLOW = new Set(
   [
     ...NAMES,
     // English words used in pronunciation comparisons
-    'think', 'this', 'water', 'ladder', 'church', 'she', 'yes', 'hello', 'wifi',
+    'think', 'this', 'water', 'ladder', 'church', 'she', 'yes', 'hello', 'wifi', 'ask',
     // correct Spanish words missing from the Hunspell list
     'pingüino', 'yeísmo', 'chile', 'yuanes', 'yoga', 'videollamada',
     // spelling fragments taught in A0 (qu, gu, gü, ll, rr…)

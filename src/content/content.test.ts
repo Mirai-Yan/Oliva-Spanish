@@ -3,6 +3,7 @@ import { build, type LevelPack } from './index'
 import a0 from './a0'
 import a1 from './a1'
 import a2 from './a2'
+import b1 from './b1'
 import { lessonSession, unitTest, buildExam, buildLevelExam, placementStage, wordLabel, wordSpeech, wordAnswers } from '../lib/exercises/generate'
 import { SCENARIOS } from './roleplay'
 import type { Word } from './types'
@@ -10,7 +11,7 @@ import { conjugate } from '../lib/conjugate'
 import { isTeach } from '../lib/exercises/types'
 import { normalizeAnswer, wordTokens } from '../lib/text/normalize'
 
-const packs: LevelPack[] = [a0, a1, a2]
+const packs: LevelPack[] = [a0, a1, a2, b1]
 const db = build(packs)
 
 function dupes(ids: string[]) {
