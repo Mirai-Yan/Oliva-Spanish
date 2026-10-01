@@ -27,7 +27,7 @@ const ALLOW = new Set(
     // English words used in pronunciation comparisons
     'think', 'this', 'water', 'ladder', 'church', 'she', 'yes', 'hello', 'wifi',
     // correct Spanish words missing from the Hunspell list
-    'pingüino', 'yeísmo', 'chile', 'yuanes', 'yoga',
+    'pingüino', 'yeísmo', 'chile', 'yuanes', 'yoga', 'videollamada',
     // spelling fragments taught in A0 (qu, gu, gü, ll, rr…)
     'qu', 'gu', 'gü', 'gue', 'gui', 'güe', 'güi', 'qui', 'll', 'rr', 'ch', 'ja', 'je', 'ji', 'jo', 'ju', 'za', 'zo', 'zu', 'ga', 'go', 'gu', 'ge', 'gi', 'ca', 'co', 'cu', 'ce', 'ci', 'ie', 'ue',
     // archaic forms quoted in history notes
