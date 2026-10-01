@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { getContent } from '../../content'
 import { LEVEL_INFO } from '../../content/types'
 import { Empty, PageHeader, Section } from '../../components/PageHeader'
-import { buildExam, type ExamSkill } from '../../lib/exercises/generate'
+import { buildExam, buildLevelExam, type ExamSkill } from '../../lib/exercises/generate'
+import { Award } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { db } from '../../store/db'
 import { useRun } from '../../store/run'
 import { BreakdownList } from './Breakdown'
@@ -59,7 +61,41 @@ export function ExamPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="考试" sub="自由组合单元和知识点，生成一套模拟卷" />
+      <PageHeader title="考试" sub="级别结业考，或自由组合单元和知识点生成模拟卷" />
+
+      <Section title={<span className="flex items-center gap-2"><Award size={18} /> 级别结业考</span>}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {c.levels
+            .filter((l) => l !== 'A0')
+            .map((lvl) => {
+              const best = (history ?? []).filter((h) => h.kind === 'level' && h.level === lvl).reduce((m, h) => Math.max(m, h.score), -1)
+              return (
+                <button
+                  key={lvl}
+                  type="button"
+                  className="tile flex items-center gap-3 !p-4"
+                  onClick={() => {
+                    start({ kind: 'level', level: lvl, title: `${lvl} 结业考`, exercises: buildLevelExam(c, lvl), timeLimit: 40 * 60 })
+                    nav('/exam/run')
+                  }}
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-lg font-black text-[#2b2108]">{lvl}</span>
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block">
+                      {lvl} 结业考 · {LEVEL_INFO[lvl].name}
+                    </span>
+                    <span className="block text-sm font-semibold text-ink-3">
+                      语法词汇 · 听力 · 阅读{best >= 0 ? ` · 最好成绩 ${Math.round(best * 100)}` : ' · 限时 40 分钟'}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+        </div>
+        <Link to="/placement" className="btn btn-plain btn-sm mt-3">
+          不确定自己的水平？做入门分级测试
+        </Link>
+      </Section>
 
       <Section title="1. 选择单元和知识点">
         {c.levels.map((lvl) => (

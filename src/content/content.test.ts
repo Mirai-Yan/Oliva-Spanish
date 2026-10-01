@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { build, type LevelPack } from './index'
 import a0 from './a0'
 import a1 from './a1'
-import { lessonSession, unitTest, buildExam, wordLabel, wordSpeech, wordAnswers } from '../lib/exercises/generate'
+import { lessonSession, unitTest, buildExam, buildLevelExam, placementStage, wordLabel, wordSpeech, wordAnswers } from '../lib/exercises/generate'
+import { SCENARIOS } from './roleplay'
 import type { Word } from './types'
 import { conjugate } from '../lib/conjugate'
 import { isTeach } from '../lib/exercises/types'
@@ -129,6 +130,27 @@ describe('content integrity', () => {
     const casa: Word = { id: 't-casa', es: 'casa', zh: '家', pos: 'n', g: 'f', level: 'A1' }
     expect(wordLabel(casa)).toBe('la casa')
     expect(wordLabel(db.wordById.get('estudiante')!)).toBe('el/la estudiante')
+  })
+
+  it('placement and level exams can be built for every level', () => {
+    for (const lvl of db.levels.filter((l) => l !== 'A0')) {
+      const p = placementStage(db, lvl)
+      expect(p.length, `${lvl} placement`).toBeGreaterThanOrEqual(8)
+      expect(p.every((e) => !isTeach(e))).toBe(true)
+      const ex = buildLevelExam(db, lvl).filter((e) => !isTeach(e))
+      expect(ex.length, `${lvl} level exam`).toBeGreaterThanOrEqual(20)
+    }
+  })
+
+  it('role-play scenarios are complete', () => {
+    const ids = new Set<string>()
+    for (const sc of SCENARIOS) {
+      expect(ids.has(sc.id), sc.id).toBe(false)
+      ids.add(sc.id)
+      expect(sc.goals.length, sc.id).toBeGreaterThanOrEqual(2)
+      expect(sc.opening.trim(), sc.id).not.toBe('')
+      expect(sc.phrases.length, sc.id).toBeGreaterThanOrEqual(2)
+    }
   })
 
   it('lookup finds inflected forms', () => {

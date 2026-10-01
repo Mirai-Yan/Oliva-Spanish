@@ -26,6 +26,8 @@ export interface Settings {
   freeMode: boolean
   /** show Chinese translation under Spanish examples by default */
   showZh: boolean
+  /** has seen the first-visit choice (start from zero / placement test) */
+  onboarded: boolean
 }
 
 export const DEFAULT_GEMINI: GeminiSettings = {
@@ -51,6 +53,7 @@ const DEFAULTS: Settings = {
   strictAccents: false,
   freeMode: false,
   showZh: true,
+  onboarded: false,
 }
 
 interface SettingsStore extends Settings {

@@ -195,3 +195,24 @@ export const SKILL_ZH: Record<Skill, string> = {
   read: '阅读',
   write: '写作',
 }
+
+/** AI role-play scenario (情景对话). */
+export interface Scenario {
+  id: string
+  level: Level
+  icon: string
+  title: string
+  titleEs: string
+  /** what the learner should imagine (Chinese) */
+  setting: string
+  /** who the AI plays, written for the AI (Spanish or Chinese) */
+  aiRole: string
+  /** who the learner is (Chinese) */
+  userRole: string
+  /** tasks to complete during the conversation (Chinese) */
+  goals: string[]
+  /** the AI's first line, in Spanish */
+  opening: string
+  /** useful expressions [es, zh] */
+  phrases: [string, string][]
+}

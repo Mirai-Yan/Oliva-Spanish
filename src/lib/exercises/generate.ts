@@ -667,3 +667,50 @@ export function pointLabel(db: ContentDB, e: Exercise): { id: string; label: str
   const skillZh: Record<Skill, string> = { vocab: '词汇', grammar: '语法', listen: '听力', speak: '口语', read: '阅读', write: '写作' }
   return { id: `${e.skill}:${u?.id ?? ''}`, label: `${skillZh[e.skill]}${u ? ' · ' + u.title : ''}` }
 }
+
+// ---------- placement & level exams ----------
+
+const pick = <T,>(arr: T[], n: number) => shuffle(arr).slice(0, n)
+
+/** 10 quick text-based questions sampling a whole level (used by the placement test). */
+export function placementStage(db: ContentDB, level: string, size = 10): Exercise[] {
+  const units = db.units.filter((u) => u.level === level)
+  const vocab: Exercise[] = []
+  const grammar: Exercise[] = []
+  const read: Exercise[] = []
+  for (const u of units) {
+    const c = unitCandidates(db, u)
+    vocab.push(...c.vocab.filter((e) => e.kind === 'choice'))
+    grammar.push(...c.grammar.filter((e) => e.kind === 'choice' || e.kind === 'build' || e.key.startsWith('cloze:')))
+    read.push(...c.read.filter((e) => e.kind === 'choice' && e.key.startsWith('smean:')))
+  }
+  const nv = Math.round(size * 0.35)
+  const nr = Math.round(size * 0.2)
+  const out = uniqBy([...pick(vocab, nv), ...pick(grammar, size - nv - nr), ...pick(read, nr)], (e) => e.key)
+  return shuffle(out)
+}
+
+/** A level final exam: grammar & vocabulary, listening, reading (2 texts), optional writing. */
+export function buildLevelExam(db: ContentDB, level: string): Exercise[] {
+  const units = db.units.filter((u) => u.level === level)
+  const gv: Exercise[] = []
+  const listen: Exercise[] = []
+  for (const u of units) {
+    const c = unitCandidates(db, u)
+    gv.push(...c.grammar, ...c.vocab.filter((e) => e.kind !== 'match'))
+    listen.push(...c.listen)
+  }
+  const out: Exercise[] = [...pick(uniqBy(gv, (e) => e.key), 14), ...pick(uniqBy(listen, (e) => e.key), 6)]
+  const readings = pick(
+    db.readings.filter((r) => r.level === level && r.questions.length >= 2),
+    2,
+  )
+  for (const r of readings) {
+    out.push({ key: `teach:${r.id}`, kind: 'teach-reading', skill: 'read', ref: { unit: r.unit }, title: '阅读理解：先读短文', reading: r })
+    r.questions.forEach((_, i) => out.push(exReadingQ(r, i)))
+  }
+  const prompts = units.flatMap((u) => (u.writing ?? []).map((w) => ({ w, u })))
+  const wp = pick(prompts, 1)[0]
+  if (wp && hasAI()) out.push({ key: `write:${wp.w.id}:${wp.u.id}`, kind: 'write', skill: 'write', ref: { unit: wp.u.id }, title: '写作', prompt: wp.w, level })
+  return out
+}

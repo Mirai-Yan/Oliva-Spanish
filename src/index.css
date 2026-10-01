@@ -225,6 +225,10 @@ select {
     color: var(--ink-2);
     border: 1.5px solid var(--line);
   }
+  .chip:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .chip-on {
     background: var(--primary-soft);
     color: var(--primary-ink);

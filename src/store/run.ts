@@ -2,7 +2,8 @@ import { create } from 'zustand'
 import type { Exercise } from '../lib/exercises/types'
 
 export interface Run {
-  kind: 'mistakes' | 'exam' | 'placement' | 'conj'
+  kind: 'mistakes' | 'exam' | 'level' | 'placement' | 'conj'
+  level?: string
   title: string
   exercises: Exercise[]
   timeLimit?: number

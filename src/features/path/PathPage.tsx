@@ -5,6 +5,7 @@ import { getContent } from '../../content'
 import { LEVEL_INFO, type Lesson, type LessonKind, type Unit } from '../../content/types'
 import { Mascot } from '../../components/Mascot'
 import { useProgress } from '../../store/progress'
+import { useSettings } from '../../store/settings'
 import { useDueCount } from '../../store/review'
 import { DailyGoalCard } from '../../app/Layout'
 import { useCourseState, type LessonState } from './useLearnerLevel'
@@ -44,10 +45,32 @@ export function PathPage() {
   }, [])
 
   const byLevel = c.levels.map((lvl) => ({ lvl, units: c.units.filter((u) => u.level === lvl) }))
+  const onboarded = useSettings((s) => s.onboarded)
+  const setSettings = useSettings((s) => s.set)
+  const anyDone = useProgress((s) => Object.keys(s.lessons).length > 0 || !!s.placement)
   const curUnit = current ? c.unitById.get(current.unitId) : null
 
   return (
     <div className="mx-auto max-w-xl">
+      {!onboarded && !anyDone && (
+        <div className="card anim-pop mb-6 p-5">
+          <div className="flex items-center gap-3">
+            <Mascot size={56} mood="cheer" />
+            <div>
+              <div className="text-lg font-black">¡Bienvenido! 欢迎来到 Oliva</div>
+              <div className="text-sm text-ink-2">你是第一次学西班牙语，还是已经有一些基础？</div>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <button type="button" className="btn btn-primary" onClick={() => setSettings({ onboarded: true })}>
+              零基础，从发音开始
+            </button>
+            <Link to="/placement" className="btn btn-ghost">
+              有基础，做分级测试
+            </Link>
+          </div>
+        </div>
+      )}
       {/* quick status for phones / tablets (desktop has the side panel) */}
       <div className="mb-6 grid grid-cols-1 gap-3 xl:hidden">
         {current && curUnit && (

@@ -51,6 +51,7 @@ export interface ExamRow {
   breakdown: Record<string, { label: string; c: number; t: number }>
   createdAt: number
   unitIds?: string[]
+  level?: string
 }
 
 export interface ChatMessage {

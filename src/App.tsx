@@ -23,6 +23,8 @@ import { MistakesPage } from './features/review/MistakesPage'
 import { ExamPage } from './features/exam/ExamPage'
 import { ExamRunPage } from './features/exam/ExamRunPage'
 import { TalkPage } from './features/talk/TalkPage'
+import { TalkChat } from './features/talk/TalkChat'
+import { PlacementPage } from './features/placement/PlacementPage'
 import { MePage } from './features/me/MePage'
 import { SettingsPage } from './features/me/SettingsPage'
 
@@ -56,6 +58,8 @@ export default function App() {
             <Route path="/lesson/:id" element={<LessonPage />} />
             <Route path="/exam/run" element={<ExamRunPage />} />
             <Route path="/review/session" element={<ExamRunPage />} />
+            <Route path="/talk/:id" element={<TalkChat />} />
+            <Route path="/placement" element={<PlacementPage />} />
             <Route element={<Layout />}>
               <Route index element={<PathPage />} />
               <Route path="/unit/:id" element={<UnitPage />} />

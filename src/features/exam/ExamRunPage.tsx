@@ -36,9 +36,20 @@ export function ExamRunPage() {
         else await markMistakeWrong(ex.key, outcome.user)
       }
       xp = 5 + r.correct
-    } else if (run.kind === 'exam') {
-      xp = 10 + Math.round(acc * 20)
-      await db.exams.add({ kind: 'custom', title: run.title, score: acc, correct: r.correct, total: r.total, seconds: r.seconds, breakdown, createdAt: Date.now(), unitIds: run.unitIds })
+    } else if (run.kind === 'exam' || run.kind === 'level') {
+      xp = (run.kind === 'level' ? 20 : 10) + Math.round(acc * 20)
+      await db.exams.add({
+        kind: run.kind === 'level' ? 'level' : 'custom',
+        title: run.title,
+        score: acc,
+        correct: r.correct,
+        total: r.total,
+        seconds: r.seconds,
+        breakdown,
+        createdAt: Date.now(),
+        unitIds: run.unitIds,
+        level: run.level,
+      })
     } else {
       xp = 5 + Math.round(acc * 10)
     }
@@ -53,15 +64,15 @@ export function ExamRunPage() {
         <ResultScreen
           result={done.r}
           xp={done.xp}
-          title={run.kind === 'mistakes' ? '错题复习完成！' : run.kind === 'exam' ? `考试得分 ${Math.round(acc * 100)}` : '完成！'}
+          title={run.kind === 'mistakes' ? '错题复习完成！' : run.kind === 'level' ? (acc >= 0.7 ? `${run.level} 结业考通过！` : `得分 ${Math.round(acc * 100)}，还差一点`) : run.kind === 'exam' ? `考试得分 ${Math.round(acc * 100)}` : '完成！'}
           subtitle={run.kind === 'mistakes' ? '做对的题连续对两次就会移出错题本' : run.title}
-          passed={acc >= 0.6}
+          passed={acc >= (run.kind === 'level' ? 0.7 : 0.6)}
           actions={
-            <button type="button" className="btn btn-primary flex-1" onClick={() => nav(run.kind === 'mistakes' ? '/review' : run.kind === 'exam' ? '/exam' : '/')}>
+            <button type="button" className="btn btn-primary flex-1" onClick={() => nav(run.kind === 'mistakes' ? '/review' : run.kind === 'exam' || run.kind === 'level' ? '/exam' : '/')}>
               完成
             </button>
           }
-          extra={run.kind === 'exam' ? <BreakdownList breakdown={done.breakdown} /> : undefined}
+          extra={run.kind === 'exam' || run.kind === 'level' ? <BreakdownList breakdown={done.breakdown} /> : undefined}
         />
     )
   }

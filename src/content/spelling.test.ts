@@ -7,6 +7,7 @@ import a1 from './a1'
 import { conjugate, gerund, participle, isVerbInfinitive, type Tense } from '../lib/conjugate'
 import { DERIVED, VERBS } from '../lib/conjugate/verbs'
 import { NAMES } from './names'
+import { SCENARIOS } from './roleplay'
 
 /**
  * Spell-checks every Spanish string in the course with a Hunspell Spanish dictionary.
@@ -123,6 +124,11 @@ describe('Spanish spelling in course content', () => {
         } else check(p.type, p.word, hits)
       }
       check(`${u.id}.titleEs`, u.titleEs, hits)
+    }
+    for (const sc of SCENARIOS) {
+      check(`${sc.id}.opening`, sc.opening, hits)
+      check(`${sc.id}.titleEs`, sc.titleEs, hits)
+      sc.phrases.forEach(([es]) => check(`${sc.id}.phrase`, es.replace(/…/g, ' '), hits))
     }
     for (const w of db.words.filter((x) => !x.unit)) {
       check(`${w.id}.es`, w.es, hits)
