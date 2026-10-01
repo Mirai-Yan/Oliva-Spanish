@@ -6,7 +6,7 @@ export const u02: Unit = {
   order: 2,
   title: '合租与规矩',
   titleEs: 'Convivir con otros',
-  icon: '🏠',
+  icon: '🧹',
   goals: ['用 recomendar、pedir、prohibir 等动词 + que + 虚拟式提要求和建议', '用 es necesario / es importante 表达规则和必要性', '分清 pedir 和 preguntar', '和室友、邻居、房东礼貌地沟通问题'],
   grammar: [
     {

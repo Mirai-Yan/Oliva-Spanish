@@ -6,7 +6,7 @@ export const u09: Unit = {
   order: 9,
   title: '健康生活',
   titleEs: 'Cuídate',
-  icon: '🩺',
+  icon: '💪',
   goals: ['用 si、en caso de que、siempre que 表达条件', '用多种方式提建议：deberías、yo que tú、lo mejor es que', '熟练使用带代词的肯定和否定命令式：dámelo, no me lo des', '看病、描述症状、给出健康建议'],
   grammar: [
     {

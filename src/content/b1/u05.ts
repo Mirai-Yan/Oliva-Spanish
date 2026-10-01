@@ -4,9 +4,9 @@ export const u05: Unit = {
   id: 'b1-u05',
   level: 'B1',
   order: 5,
-  title: '讲故事',
+  title: '趣事与回忆',
   titleEs: 'Contar historias',
-  icon: '📖',
+  icon: '🎭',
   goals: ['用过去完成时说“在过去某时之前已经发生的事”', '组合简单过去时、过去未完成时和过去完成时讲故事', '用 al + 原形、en ese momento、al cabo de 等连接情节', '讲一件趣事，并对别人的故事做出反应'],
   grammar: [
     {

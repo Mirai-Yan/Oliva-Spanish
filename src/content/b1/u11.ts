@@ -6,7 +6,7 @@ export const u11: Unit = {
   order: 11,
   title: '保护环境',
   titleEs: 'El medio ambiente',
-  icon: '🌍',
+  icon: '♻️',
   goals: ['用 en primer lugar、además、por último 组织观点', '用 como、ya que、por eso、por lo tanto 说明原因和结果', '用 sin embargo、aunque、en cambio、sino 表达对比和让步', '写一篇结构清楚的议论短文'],
   grammar: [
     {
