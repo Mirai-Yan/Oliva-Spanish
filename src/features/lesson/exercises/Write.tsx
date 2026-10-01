@@ -1,8 +1,9 @@
-import { Sparkles } from 'lucide-react'
+import { ExternalLink, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Markdown } from '../../../components/Markdown'
 import { generateJSON } from '../../../lib/gemini/client'
 import { WRITING_SCHEMA, writingPrompt } from '../../../lib/gemini/prompts'
+import { askInGemini } from '../../../lib/gemini/handoff'
 import { useSettings } from '../../../store/settings'
 import type { ExProps } from './types'
 import { AccentBar, insertAt } from './AccentBar'
@@ -100,7 +101,12 @@ export function Write({ ex, locked, finish }: ExProps<'write'>) {
               <Sparkles size={18} /> {busy ? 'AI 正在批改…' : '提交给 AI 批改'}
             </button>
           ) : (
-            <div className="rounded-2xl bg-accent-soft p-3 text-sm">写作题需要 AI 批改。在设置里填好 Gemini API Key 后即可使用；现在可以先写下来自己检查，然后点「跳过」。</div>
+            <>
+              <button type="button" className="btn btn-accent" disabled={count < Math.min(3, min)} onClick={() => askInGemini(writingPrompt(ex.prompt.prompt, text, ex.level), { persona: false })}>
+                <ExternalLink size={18} /> 复制到 Gemini 网页版批改
+              </button>
+              <div className="text-center text-xs text-ink-3">没有 API Key 时，作文和批改要求会复制到 Gemini 网页版，用你的会员批改；批改完回来点「跳过」继续。</div>
+            </>
           )}
           {err && <div className="rounded-2xl bg-bad-soft p-3 text-sm font-semibold text-bad-strong">{err}</div>}
           {!locked && (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './app/Layout'
 import { Mascot } from './components/Mascot'
+import { Toaster } from './components/Toast'
 import { loadContent } from './content'
 import { ThemeApplier } from './theme/ThemeApplier'
 import { TutorPanel } from './features/tutor/TutorPanel'
@@ -46,6 +47,7 @@ export default function App() {
   return (
     <>
       <ThemeApplier />
+      <Toaster />
       {!ready ? (
         <Splash error={error} />
       ) : (

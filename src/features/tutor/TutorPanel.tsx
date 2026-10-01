@@ -1,4 +1,4 @@
-import { ArrowUp, History, KeyRound, Plus, Square, X } from 'lucide-react'
+import { ArrowUp, ExternalLink, History, KeyRound, Plus, Square, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { Markdown } from '../../components/Markdown'
 import { Mascot } from '../../components/Mascot'
 import { GeminiError, streamGenerate } from '../../lib/gemini/client'
 import { tutorSystem } from '../../lib/gemini/prompts'
+import { askInGemini } from '../../lib/gemini/handoff'
 import { db, type ChatMessage, type ChatRow } from '../../store/db'
 import { useSettings } from '../../store/settings'
 import { useLearnerLevel } from '../path/useLearnerLevel'
@@ -47,6 +48,17 @@ export function TutorPanel() {
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })
   }, [chat.messages])
+
+  /** Without an API key the question goes to the Gemini website (the learner's own membership). */
+  const handoff = useCallback(
+    (text: string) => {
+      const q = text.trim()
+      if (!q) return
+      askInGemini(`我是中文母语的西班牙语学习者，水平：${level}。${context ? `\n我正在看的内容：\n${context}\n` : ''}\n我的问题：${q}`)
+      setInput('')
+    },
+    [context, level],
+  )
 
   const send = useCallback(
     async (text: string) => {
@@ -165,11 +177,13 @@ export function TutorPanel() {
           {!apiKey && (
             <div className="card bg-accent-soft p-4 text-sm">
               <div className="mb-1 flex items-center gap-2 font-extrabold">
-                <KeyRound size={16} /> 需要先设置 Gemini API Key
+                <KeyRound size={16} /> 还没有设置 API Key
               </div>
-              <p className="text-ink-2">AI 答疑使用 Google Gemini。在设置里填入你自己的 API Key（只保存在本机浏览器）即可使用。</p>
+              <p className="text-ink-2">
+                现在提问会 <b>复制到 Gemini 网页版</b>，用你自己的 Gemini 会员回答（会附上你正在学的内容）。想在 app 里直接得到回答，可以在设置里 <b>免费</b> 申请一个 API Key，不需要付费。
+              </p>
               <Link to="/settings#ai" onClick={close} className="btn btn-accent btn-sm mt-3">
-                去设置
+                免费申请 API Key
               </Link>
             </div>
           )}
@@ -179,7 +193,7 @@ export function TutorPanel() {
               <p className="mt-2 font-bold text-ink-2">¡Hola! 有什么不懂的，随时问我。</p>
               <div className="mt-4 flex flex-col gap-2">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" className="tile text-sm" onClick={() => (apiKey ? send(s) : setInput(s))}>
+                  <button key={s} type="button" className="tile text-sm" onClick={() => (apiKey ? send(s) : handoff(s))}>
                     {s}
                   </button>
                 ))}
@@ -206,7 +220,8 @@ export function TutorPanel() {
           className="safe-bottom border-t border-line p-3"
           onSubmit={(e) => {
             e.preventDefault()
-            send(input)
+            if (apiKey) send(input)
+            else handoff(input)
           }}
         >
           <div className="flex items-end gap-2">
@@ -217,11 +232,12 @@ export function TutorPanel() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault()
-                  send(input)
+                  if (apiKey) send(input)
+                  else handoff(input)
                 }
               }}
               rows={1}
-              placeholder={apiKey ? '用中文或西语提问…' : '先在设置里填写 API Key'}
+              placeholder={apiKey ? '用中文或西语提问…' : '输入问题，发送后复制到 Gemini 网页版'}
               className="input max-h-40 min-h-[48px] resize-none"
             />
             {busy ? (
@@ -229,8 +245,8 @@ export function TutorPanel() {
                 <Square size={18} />
               </button>
             ) : (
-              <button type="submit" className="btn btn-primary h-12 w-12 !p-0" disabled={!input.trim() || !apiKey} aria-label="发送">
-                <ArrowUp size={20} strokeWidth={3} />
+              <button type="submit" className="btn btn-primary h-12 w-12 !p-0" disabled={!input.trim()} aria-label={apiKey ? '发送' : '复制到 Gemini'} title={apiKey ? '发送' : '复制到 Gemini 网页版'}>
+                {apiKey ? <ArrowUp size={20} strokeWidth={3} /> : <ExternalLink size={20} strokeWidth={2.6} />}
               </button>
             )}
           </div>

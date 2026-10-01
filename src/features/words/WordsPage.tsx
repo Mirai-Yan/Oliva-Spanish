@@ -13,6 +13,7 @@ import { db } from '../../store/db'
 import { useSettings } from '../../store/settings'
 import { useDueCount } from '../../store/review'
 import { aiLookup, type AiEntry } from './aiDict'
+import { askInGemini } from '../../lib/gemini/handoff'
 
 export function WordsPage() {
   const c = getContent()
@@ -93,9 +94,19 @@ export function WordsPage() {
             ) : ai.entry === null ? (
               <div className="card p-4 text-center text-ink-2">AI 认为这不是一个西班牙语单词，检查一下拼写？</div>
             ) : (
-              <button type="button" className="btn btn-accent w-full" disabled={!hasAI || ai.busy} onClick={runAI}>
-                <Sparkles size={18} /> {ai.busy ? 'AI 查询中…' : hasAI ? `用 AI 查「${q.trim()}」（含词源）` : 'AI 查词需要先在设置里填写 API Key'}
-              </button>
+              hasAI ? (
+                <button type="button" className="btn btn-accent w-full" disabled={ai.busy} onClick={runAI}>
+                  <Sparkles size={18} /> {ai.busy ? 'AI 查询中…' : `用 AI 查「${q.trim()}」（含词源）`}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-accent w-full"
+                  onClick={() => askInGemini(`请当西班牙语—中文词典，查词「${q.trim()}」：给出原形、词性、阴阳性、中文释义、2 个例句（附中文）、词源演变（只写公认的）、英语同源词和拉美用法差异。`)}
+                >
+                  <Sparkles size={18} /> 到 Gemini 网页版查「{q.trim()}」
+                </button>
+              )
             )}
             {ai.err && <div className="mt-2 rounded-2xl bg-bad-soft p-3 text-sm font-semibold text-bad-strong">{ai.err}</div>}
           </div>

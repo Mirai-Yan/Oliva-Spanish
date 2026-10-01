@@ -31,7 +31,8 @@ export interface Settings {
 export const DEFAULT_GEMINI: GeminiSettings = {
   apiKey: '',
   baseUrl: 'https://generativelanguage.googleapis.com',
-  model: 'gemini-2.5-flash',
+  /** empty = pick the newest free-tier Flash automatically */
+  model: '',
 }
 
 const DEFAULTS: Settings = {
@@ -68,7 +69,13 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'oliva-settings',
-      version: 1,
+      version: 2,
+      // v1 hard-coded gemini-2.5-flash; switch untouched installs to auto-detection
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<Settings>
+        if (version < 2 && p.gemini?.model === 'gemini-2.5-flash') p.gemini = { ...p.gemini, model: '' }
+        return p as SettingsStore
+      },
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<Settings>
         return { ...current, ...p, gemini: { ...DEFAULT_GEMINI, ...(p.gemini ?? {}) }, custom: { ...DEFAULTS.custom, ...(p.custom ?? {}) } }

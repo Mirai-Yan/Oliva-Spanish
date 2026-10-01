@@ -196,12 +196,27 @@ export function SettingsPage() {
       </Card>
 
       <Card id="ai" icon={<Sparkles size={20} className="text-accent" />} title="AI 助手（Gemini）">
-        <div className="rounded-2xl bg-surface-2 p-3 text-sm text-ink-2">
-          AI 答疑、作文批改、口语评分和 AI 查词使用 Google Gemini。去{' '}
-          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="font-bold text-primary-ink underline">
-            Google AI Studio
-          </a>{' '}
-          免费创建一个 API Key，粘贴到下面。Key 只保存在这台设备的浏览器里，不会上传到别处。
+        <div className="rounded-2xl bg-surface-2 p-4 text-sm text-ink-2">
+          <div className="mb-2 font-black text-ink">免费获取 API Key（不需要付费、不用绑卡）</div>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>
+              打开{' '}
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="font-bold text-primary-ink underline">
+                aistudio.google.com/apikey
+              </a>
+              ，用你的 Google 账号登录（就是开通 Gemini 会员的那个账号也可以）。
+            </li>
+            <li>点「Create API key」（创建 API 密钥），如果要求选项目，选默认的即可。</li>
+            <li>复制生成的以 AIza 开头的密钥，粘贴到下面的输入框，然后点「测试连接」。</li>
+          </ol>
+          <div className="mt-3 space-y-1 text-xs">
+            <p>
+              💡 <b>Gemini 会员（Google AI Pro）和 API 是两个独立的产品</b>：会员不包含 API，也不能用会员账号直接登录第三方网站。但 API 有官方免费额度，个人学习一般够用。
+            </p>
+            <p>🔒 Key 只保存在这台设备的浏览器里。注意：免费额度下，Google 可能会用你发送的内容改进产品，不要发送隐私信息。</p>
+            <p>🌏 需要在 Google 支持的地区使用（中国大陆、香港不在支持范围，需要代理，且账号所在地区受支持）。</p>
+            <p>📋 不想申请 Key 也可以：所有 AI 按钮会把问题复制到 Gemini 网页版，用你的会员回答。</p>
+          </div>
         </div>
         <div>
           <div className="mb-1.5 flex items-center gap-2 font-bold">
@@ -222,7 +237,14 @@ export function SettingsPage() {
         <div>
           <div className="mb-1.5 font-bold">模型</div>
           <div className="flex flex-wrap gap-2">
-            <input value={s.gemini.model} onChange={(e) => s.setGemini({ model: e.target.value.trim() })} spellCheck={false} list="gemini-models" className="input !w-auto min-w-[220px] flex-1 font-mono text-sm" />
+            <input
+              value={s.gemini.model}
+              onChange={(e) => s.setGemini({ model: e.target.value.trim() })}
+              placeholder="自动（推荐）"
+              spellCheck={false}
+              list="gemini-models"
+              className="input !w-auto min-w-[220px] flex-1 font-mono text-sm"
+            />
             <datalist id="gemini-models">
               {models.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -246,7 +268,7 @@ export function SettingsPage() {
               <RefreshCw size={14} /> 获取模型列表
             </button>
           </div>
-          <div className="mt-1 text-xs text-ink-3">推荐用 Flash 系列（又快又省额度）；想要更深入的讲解可以换成 Pro。</div>
+          <div className="mt-1 text-xs text-ink-3">留空 = 自动选择最新的免费 Flash 模型（推荐）。免费额度用完时可以换成名字带 flash-lite 的模型；Pro 模型讲解更深入但免费额度更少。清空输入框即可恢复自动。</div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" className="btn btn-accent" disabled={!s.gemini.apiKey || test.busy} onClick={testAI}>
