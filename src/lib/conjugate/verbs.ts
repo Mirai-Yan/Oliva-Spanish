@@ -291,6 +291,7 @@ export const VERBS: Record<string, VerbSpec> = {
   aislar: { stem: 'acc-i' },
   continuar: { stem: 'acc-u' },
   insinuar: { stem: 'acc-u' },
+  atenuar: { stem: 'acc-u' },
   puntuar: { stem: 'acc-u' },
   habituar: { stem: 'acc-u' },
   actuar: { stem: 'acc-u' },
