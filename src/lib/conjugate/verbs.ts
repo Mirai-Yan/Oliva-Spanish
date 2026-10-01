@@ -3,7 +3,7 @@
  * c→qu, g→j, -uir → y, vowel+cer → zc are detected automatically from the infinitive).
  */
 
-export type StemChange = 'ie' | 'ue' | 'i' | 'uue' | 'iie' | 'acc-i' | 'acc-u'
+export type StemChange = 'ie' | 'ie0' | 'ue' | 'i' | 'uue' | 'iie' | 'acc-i' | 'acc-u'
 export type Six = [string, string, string, string, string, string]
 
 export interface VerbSpec {
@@ -158,6 +158,11 @@ export const VERBS: Record<string, VerbSpec> = {
   sentir: { stem: 'ie' },
   arrepentir: { stem: 'ie' },
   desmentir: { stem: 'ie' },
+  discernir: { stem: 'ie0' },
+  trascender: { stem: 'ie' },
+  acrecentar: { stem: 'ie' },
+  alentar: { stem: 'ie' },
+  enmendar: { stem: 'ie' },
   inferir: { stem: 'ie' },
   conferir: { stem: 'ie' },
   diferir: { stem: 'ie' },
@@ -291,6 +296,13 @@ export const VERBS: Record<string, VerbSpec> = {
   aislar: { stem: 'acc-i' },
   continuar: { stem: 'acc-u' },
   insinuar: { stem: 'acc-u' },
+  rehuir: {
+    over: {
+      pres: ['rehúyo', 'rehúyes', 'rehúye', 'rehuimos', 'rehuís', 'rehúyen'],
+      subj: ['rehúya', 'rehúyas', 'rehúya', 'rehuyamos', 'rehuyáis', 'rehúyan'],
+    },
+    impTu: 'rehúye',
+  },
   atenuar: { stem: 'acc-u' },
   puntuar: { stem: 'acc-u' },
   habituar: { stem: 'acc-u' },

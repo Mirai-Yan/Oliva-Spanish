@@ -129,6 +129,7 @@ function changeStem(stem: string, type: StemChange | undefined, cls: Cls, strong
   if (strong) {
     switch (type) {
       case 'ie':
+      case 'ie0':
         return replaceLast('e', 'ie')
       case 'ue':
         return replaceLast('o', 'ue')
