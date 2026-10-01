@@ -15,6 +15,7 @@ export interface LevelPack {
 const LOADERS: Partial<Record<Level, () => Promise<{ default: LevelPack }>>> = {
   A0: () => import('./a0'),
   A1: () => import('./a1'),
+  A2: () => import('./a2'),
 }
 
 export interface ContentDB {

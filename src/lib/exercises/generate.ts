@@ -520,9 +520,12 @@ function readLesson(db: ContentDB, u: Unit, l: Lesson): Exercise[] {
   const out: Exercise[] = [{ key: `teach:${r.id}`, kind: 'teach-reading', skill: 'read', ref: { unit: u.id }, title: '阅读短文', reading: r }]
   r.questions.forEach((_, i) => out.push(exReadingQ(r, i)))
   const sents: SentLike[] = r.paras.flat().map(([es, zh], i) => ({ id: `${r.id}-s${i}`, es, zh, unit: u.id }))
-  const short = sents.filter((s) => wordTokens(s.es).length <= 12)
+  // short sentences from the text make good word-bank / speaking items; fall back to the unit's sentences
+  let short = sents.filter((s) => wordTokens(s.es).length <= 12)
+  if (short.length < 3) short = [...short, ...unitSentences(u).filter((s) => wordTokens(s.es).length <= 10)]
   sample(short, 2).forEach((s) => out.push(exBuild(s, sents)))
   sample(short, 1).forEach((s) => out.push(exSpeak(s)))
+  if (r.questions.length < 4) sample(sents, 1).forEach((s) => out.push(exSentMeaning(s, sents)))
   const w = u.writing?.[0]
   if (w && hasAI()) out.push({ key: `write:${w.id}:${u.id}`, kind: 'write', skill: 'write', ref: { unit: u.id }, title: '读后写', prompt: w, level: u.level })
   return out
