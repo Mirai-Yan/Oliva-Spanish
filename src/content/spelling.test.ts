@@ -34,7 +34,7 @@ const ALLOW = new Set(
     // spelling fragments taught in A0 (qu, gu, gü, ll, rr…)
     'qu', 'gu', 'gü', 'gue', 'gui', 'güe', 'güi', 'qui', 'll', 'rr', 'ch', 'ja', 'je', 'ji', 'jo', 'ju', 'za', 'zo', 'zu', 'ga', 'go', 'gu', 'ge', 'gi', 'ca', 'co', 'cu', 'ce', 'ci', 'ie', 'ue',
     // regional forms taught in C1 (voseo, Caribbean / Rioplatense words, accents imitated in examples)
-    'comé', 'decí', 'hablá', 'querés', 'sabés', 'tené', 'vení', 'comés', 'hablás', 'hablés', 'llamás', 'podés', 'tenés', 'estái', 'sho', 'shamo', 'cashe', 'plasha', 'tranqui', 'cafecito', 'chévere', 'guagua', 'pibe', 'piba', 'email', 'cooficial', 'pluricéntrica', 'favorcito', 'cosita', 'pelín', 'reformuladores', 'reformulador', 'autoayuda',
+    'comé', 'decí', 'hablá', 'querés', 'sabés', 'tené', 'vení', 'comés', 'hablás', 'hablés', 'llamás', 'podés', 'tenés', 'estái', 'sho', 'shamo', 'cashe', 'plasha', 'tranqui', 'cafecito', 'chévere', 'guagua', 'pibe', 'piba', 'email', 'cooficial', 'pluricéntrica', 'favorcito', 'cosita', 'pelín', 'reformuladores', 'reformulador', 'autoayuda', 'modalización', 'contraargumentación',
     // archaic forms quoted in history notes
     'vuesa', 'vuesarced', 'Quixote', 'coraçón',
   ].map((w) => w.toLowerCase()),
@@ -166,7 +166,7 @@ describe('Spanish spelling of generated conjugations', () => {
   const TENSES: Tense[] = ['pres', 'pret', 'impf', 'fut', 'cond', 'subj', 'subjImpf', 'subjImpfSe', 'imp']
   // valid forms the dictionary happens not to list
   // (atén: atener is only used as atenerse → atente)
-  const OK = new Set<string>(['atén', 'abstén', 'contén', 'oíd', 'reíd', 'freíd', 'sonreíd', 'olamos', 'oláis', 'solí', 'soliste', 'solió', 'solimos', 'solisteis', 'solieron'])
+  const OK = new Set<string>(['atén', 'abstén', 'palian', 'palie', 'palies', 'palien', 'contén', 'oíd', 'reíd', 'freíd', 'sonreíd', 'olamos', 'oláis', 'solí', 'soliste', 'solió', 'solimos', 'solisteis', 'solieron'])
   const verbs = [
     ...new Set([
       ...Object.keys(VERBS).filter((v) => v !== 'cribir'),
