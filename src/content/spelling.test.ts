@@ -33,6 +33,8 @@ const ALLOW = new Set(
     'pingüino', 'yeísmo', 'chile', 'yuanes', 'yoga', 'videollamada', 'pobrecito', 'microplástico', 'microplásticos', 'perfeccionista', 'fregona', 'superpoder', 'superpoderes', 'climatóloga', 'climatólogo', 'alzhéimer', 'mmm', 'reutilizable', 'reutilizables', 'ok', 'cerrajera', 'leísta', 'leístas', 'deslocalización', 'desertificación', 'ultimátums', 'nominalización', 'ojito',
     // spelling fragments taught in A0 (qu, gu, gü, ll, rr…)
     'qu', 'gu', 'gü', 'gue', 'gui', 'güe', 'güi', 'qui', 'll', 'rr', 'ch', 'ja', 'je', 'ji', 'jo', 'ju', 'za', 'zo', 'zu', 'ga', 'go', 'gu', 'ge', 'gi', 'ca', 'co', 'cu', 'ce', 'ci', 'ie', 'ue',
+    // regional forms taught in C1 (voseo, Caribbean / Rioplatense words, accents imitated in examples)
+    'comé', 'decí', 'hablá', 'querés', 'sabés', 'tené', 'vení', 'comés', 'hablás', 'hablés', 'llamás', 'podés', 'tenés', 'estái', 'sho', 'shamo', 'cashe', 'plasha', 'tranqui', 'cafecito', 'chévere', 'guagua', 'pibe', 'piba', 'email', 'cooficial', 'pluricéntrica',
     // archaic forms quoted in history notes
     'vuesa', 'vuesarced', 'Quixote', 'coraçón',
   ].map((w) => w.toLowerCase()),
