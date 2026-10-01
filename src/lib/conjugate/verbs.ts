@@ -257,6 +257,9 @@ export const VERBS: Record<string, VerbSpec> = {
 
   // written accent on stressed i / u
   enviar: { stem: 'acc-i' },
+  reenviar: { stem: 'acc-i' },
+  desconfiar: { stem: 'acc-i' },
+  ansiar: { stem: 'acc-i' },
   confiar: { stem: 'acc-i' },
   guiar: { stem: 'acc-i' },
   criar: { stem: 'acc-i' },
@@ -274,6 +277,9 @@ export const VERBS: Record<string, VerbSpec> = {
   prohibir: { stem: 'acc-i' },
   aislar: { stem: 'acc-i' },
   continuar: { stem: 'acc-u' },
+  insinuar: { stem: 'acc-u' },
+  puntuar: { stem: 'acc-u' },
+  habituar: { stem: 'acc-u' },
   actuar: { stem: 'acc-u' },
   graduar: { stem: 'acc-u' },
   situar: { stem: 'acc-u' },
