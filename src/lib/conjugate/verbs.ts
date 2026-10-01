@@ -143,6 +143,7 @@ export const VERBS: Record<string, VerbSpec> = {
   resolver: { stem: 'ue', part: 'resuelto' },
   imprimir: { part: 'impreso' },
   jugar: { stem: 'uue' },
+  inquirir: { stem: 'iie' },
   adquirir: { stem: 'iie' },
 
   // e → ie
@@ -156,6 +157,11 @@ export const VERBS: Record<string, VerbSpec> = {
   preferir: { stem: 'ie' },
   sentir: { stem: 'ie' },
   arrepentir: { stem: 'ie' },
+  desmentir: { stem: 'ie' },
+  presentir: { stem: 'ie' },
+  resentir: { stem: 'ie' },
+  digerir: { stem: 'ie' },
+  ingerir: { stem: 'ie' },
   avergonzar: { stem: 'ue' },
   mentir: { stem: 'ie' },
   divertir: { stem: 'ie' },
