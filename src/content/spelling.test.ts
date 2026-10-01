@@ -74,6 +74,8 @@ function check(where: string, text: string | undefined, out: Hit[]) {
     if (t.length <= 1) continue
     if (midNames.has(t)) continue
     if (ALLOW.has(t.toLowerCase())) continue
+    // productive superlatives (carísimo, facilísimo) are not listed in the dictionary
+    if (/ísim[oa]s?$/.test(t.toLowerCase())) continue
     if (spell.correct(t) || spell.correct(t.toLowerCase()) || withEnclitics(t.toLowerCase())) continue
     out.push({ where, word: t, text })
   }
