@@ -46,6 +46,19 @@ function tokens(text: string): string[] {
     .filter((t) => t && !/^-/.test(t))
 }
 
+const CLITICS = ['selos', 'selas', 'selo', 'sela', 'melo', 'mela', 'telo', 'tela', 'noslo', 'nosla', 'oslo', 'osla', 'los', 'las', 'les', 'nos', 'lo', 'la', 'le', 'me', 'te', 'se', 'os']
+const PLAIN: Record<string, string> = { á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u' }
+
+/** Verb forms with attached pronouns (caliéntalo, explicárselo, levantémonos) are not in the word list. */
+function withEnclitics(w: string): boolean {
+  for (const c of CLITICS) {
+    if (!w.endsWith(c) || w.length - c.length < 2) continue
+    const base = [...w.slice(0, -c.length)].map((ch) => PLAIN[ch] ?? ch).join('')
+    for (const cand of [base, base + 's', base + 'd', w.slice(0, -c.length)]) if (spell.correct(cand)) return true
+  }
+  return false
+}
+
 interface Hit {
   where: string
   word: string
@@ -61,7 +74,7 @@ function check(where: string, text: string | undefined, out: Hit[]) {
     if (t.length <= 1) continue
     if (midNames.has(t)) continue
     if (ALLOW.has(t.toLowerCase())) continue
-    if (spell.correct(t) || spell.correct(t.toLowerCase())) continue
+    if (spell.correct(t) || spell.correct(t.toLowerCase()) || withEnclitics(t.toLowerCase())) continue
     out.push({ where, word: t, text })
   }
 }
@@ -77,7 +90,8 @@ function fragments(md: string | undefined, italics: boolean): string[] {
   const out: string[] = []
   for (const m of text.matchAll(/(?<![\p{L}-])\*\*([^*]+)\*\*(?![\p{L}-])/gu)) out.push(m[1])
   if (italics) {
-    const noBold = text.replace(/\*\*[^*]+\*\*/g, ' ')
+    // keep bold text inside italics: *Estoy haciéndo**lo**.* → *Estoy haciéndolo.*
+    const noBold = text.replace(/\*\*([^*]+)\*\*/g, '$1')
     for (const m of noBold.matchAll(/(?<![\p{L}*-])\*([^*\n]+)\*(?![\p{L}*-])/gu)) out.push(m[1])
   }
   return out
