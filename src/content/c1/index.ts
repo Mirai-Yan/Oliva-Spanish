@@ -7,6 +7,7 @@ import { u05 } from './u05'
 import { u06 } from './u06'
 import { u07 } from './u07'
 import { u08 } from './u08'
+import { u09 } from './u09'
 
-const pack: LevelPack = { level: 'C1', units: [u01, u02, u03, u04, u05, u06, u07, u08] }
+const pack: LevelPack = { level: 'C1', units: [u01, u02, u03, u04, u05, u06, u07, u08, u09] }
 export default pack
