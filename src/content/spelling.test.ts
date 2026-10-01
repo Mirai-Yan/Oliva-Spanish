@@ -166,7 +166,7 @@ describe('Spanish spelling of generated conjugations', () => {
   const TENSES: Tense[] = ['pres', 'pret', 'impf', 'fut', 'cond', 'subj', 'subjImpf', 'subjImpfSe', 'imp']
   // valid forms the dictionary happens not to list
   // (atén: atener is only used as atenerse → atente)
-  const OK = new Set<string>(['atén', 'abstén', 'palian', 'palie', 'palies', 'palien', 'contén', 'oíd', 'reíd', 'freíd', 'sonreíd', 'olamos', 'oláis', 'solí', 'soliste', 'solió', 'solimos', 'solisteis', 'solieron'])
+  const OK = new Set<string>(['atén', 'abstén', 'palian', 'palie', 'palies', 'palien', 'rehúyo', 'rehúyes', 'rehúye', 'rehúyen', 'rehúya', 'rehúyas', 'rehúyan', 'contén', 'oíd', 'reíd', 'freíd', 'sonreíd', 'olamos', 'oláis', 'solí', 'soliste', 'solió', 'solimos', 'solisteis', 'solieron'])
   const verbs = [
     ...new Set([
       ...Object.keys(VERBS).filter((v) => v !== 'cribir'),
