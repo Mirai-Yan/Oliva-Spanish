@@ -40,6 +40,8 @@ export type Exercise = Base &
         explain?: string
         /** read the options aloud when tapped */
         speakOptions?: boolean
+        /** the contrast only exists in this accent (casa / caza needs a Spain voice) */
+        voiceLang?: 'es-ES'
       }
     | { kind: 'match'; pairs: [string, string][] }
     | {

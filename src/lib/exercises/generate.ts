@@ -8,8 +8,11 @@ import { hasAI } from '../../store/settings'
 
 // ---------- word display helpers ----------
 
+/** Proper nouns (España, México, China) are written with a capital and take no article. */
+const isProper = (w: Word) => /^\p{Lu}/u.test(w.es)
+
 export function article(w: Word): string {
-  if (w.pos !== 'n' || !w.g) return ''
+  if (w.pos !== 'n' || !w.g || isProper(w)) return ''
   if (w.g === 'f') {
     const first = syllabify(w.es)[0] ?? ''
     // el agua, el hambre: feminine nouns starting with stressed a-
@@ -21,7 +24,7 @@ export function article(w: Word): string {
 
 /** Dictionary-style label: "el libro", "el profesor, la profesora", "alto, alta". */
 export function wordLabel(w: Word): string {
-  if (w.pos === 'n' && w.g) {
+  if (w.pos === 'n' && w.g && !isProper(w)) {
     const art = article(w)
     if (w.f) return `${art === 'el/la' ? 'el' : art} ${w.es}, la ${w.f}`
     return `${art} ${w.es}`
@@ -32,7 +35,7 @@ export function wordLabel(w: Word): string {
 
 /** What to read aloud for a word. */
 export function wordSpeech(w: Word): string {
-  if (w.pos === 'n' && w.g) {
+  if (w.pos === 'n' && w.g && !isProper(w)) {
     const art = article(w)
     if (w.f) return `${art === 'el/la' ? 'el' : art} ${w.es}, la ${w.f}`
     return art === 'el/la' ? `el ${w.es}, la ${w.es}` : `${art} ${w.es}`
@@ -44,13 +47,12 @@ export function wordSpeech(w: Word): string {
 /** Accepted typed answers for a word. */
 export function wordAnswers(w: Word): string[] {
   const out = [w.es]
-  if (w.pos === 'n' && w.g) {
+  if (w.pos === 'n' && w.g && !isProper(w)) {
     const art = article(w)
     if (art === 'el/la') out.push(`el ${w.es}`, `la ${w.es}`)
     else out.push(`${art} ${w.es}`)
     if (w.f) out.push(w.f, `la ${w.f}`)
-  } else if (w.f) out.push(w.f, `${w.es} ${w.f}`)
-  // "¡hola!" → "hola"
+  } else if (w.f) out.push(w.f, `${w.es}, ${w.f}`)
   return uniqBy(out, (x) => x)
 }
 
@@ -269,7 +271,7 @@ export function exSpeak(s: { id: string; es: string; zh?: string; unit?: string;
     kind: 'speak',
     skill: 'speak',
     ref: { unit: s.unit, grammar: s.g },
-    title: '跟读这句话',
+    title: '大声跟读',
     text: s.es,
     zh: s.zh,
   }
@@ -384,6 +386,7 @@ function pronExercises(items: PronItem[], unit: string): Exercise[] {
         optionLang: 'es',
         answer: opts.indexOf(heard),
         speakOptions: true,
+        voiceLang: it.spain ? 'es-ES' : undefined,
       })
     } else if (it.type === 'stress') {
       const syls = syllabify(it.word)

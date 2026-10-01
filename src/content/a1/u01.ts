@@ -224,7 +224,7 @@ export const u01: Unit = {
     { id: 'c16', text: 'Yo no ___ profesora.', answers: ['soy'], hint: 'ser', zh: '我不是老师。', g: ['a1-ser'] },
     { id: 'c17', text: 'Ana y yo ___ amigas.', answers: ['somos'], hint: 'ser', zh: '安娜和我是朋友。', g: ['a1-ser'], explain: '“安娜和我” = nosotras，所以用 somos。' },
     { id: 'c18', text: 'Él se ___ Pablo.', answers: ['llama'], hint: 'llamarse', zh: '他叫巴勃罗。', g: ['a1-saludos'] },
-    { id: 'c19', text: '(A una mujer) —Me llamo Luis. —___.', answers: ['Encantada'], options: ['Encantada', 'Encantado', 'Hola'], zh: '（说话的是女性）——我叫路易斯。——很高兴认识你。', g: ['a1-saludos'], explain: '说话人是女性，所以说 encantada。' },
+    { id: 'c19', text: '(Responde una mujer) —Me llamo Luis. —___.', answers: ['Encantada'], options: ['Encantada', 'Encantado', 'Hola'], zh: '（说话的是女性）——我叫路易斯。——很高兴认识你。', g: ['a1-saludos'], explain: '说话人是女性，所以说 encantada。' },
     { id: 'c20', text: '¿Usted y su amigo ___ de Madrid?', answers: ['son'], options: ['son', 'sois', 'es'], zh: '您和您的朋友是马德里人吗？', g: ['a1-pronombres', 'a1-ser'], explain: 'usted + 另一人 = ustedes，动词用第三人称复数 son。' },
   ],
   conj: [
@@ -243,7 +243,7 @@ export const u01: Unit = {
         { who: 'Li Ming', es: 'Mucho gusto, Ana.', zh: '很高兴认识你，安娜。' },
         { who: 'Ana', es: 'Encantada. ¿Qué tal?', zh: '很高兴认识你。你怎么样？' },
         { who: 'Li Ming', es: 'Muy bien, gracias. ¿Y tú?', zh: '很好，谢谢。你呢？' },
-        { who: 'Ana', es: '¡Bien también!', zh: '我也很好！' },
+        { who: 'Ana', es: '¡Yo también estoy bien!', zh: '我也很好！' },
       ],
     },
   ],

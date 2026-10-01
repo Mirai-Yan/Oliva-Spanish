@@ -147,7 +147,7 @@ export interface WritingPrompt {
 
 /** Pronunciation drill items (A0). g = the pronunciation topic (grammar point id) it belongs to. */
 export type PronItem = { g: string } & (
-  | { type: 'pair'; a: string; b: string; focus: string }
+  | { type: 'pair'; a: string; b: string; focus: string; spain?: true }
   | { type: 'stress'; word: string }
   | { type: 'spell'; word: string; zh?: string }
 )

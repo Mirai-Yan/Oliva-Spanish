@@ -20,6 +20,8 @@ export interface VerbSpec {
   impTu?: string
   /** disable automatic zc for vowel+cer verbs (cocer, mecer) */
   noZc?: boolean
+  /** tenses the verb does not have (soler has no future…) */
+  defective?: string[]
   over?: Partial<Record<string, Six | Partial<Record<number, string>>>>
 }
 
@@ -59,7 +61,7 @@ export const VERBS: Record<string, VerbSpec> = {
     },
     pretStem: 'hub',
     futStem: 'habr',
-    impTu: 'he',
+    defective: ['imp', 'impNeg'],
   },
   dar: {
     over: {
@@ -79,6 +81,11 @@ export const VERBS: Record<string, VerbSpec> = {
     ger: 'viendo',
   },
   saber: { yo: 'sé', subjStem: 'sep', pretStem: 'sup', futStem: 'sabr' },
+  satisfacer: { yo: 'satisfago', pretStem: 'satisfic', futStem: 'satisfar', impTu: 'satisfaz', part: 'satisfecho', over: { pret: { 2: 'satisfizo' } } },
+  bendecir: { stem: 'i', yo: 'bendigo', pretStem: 'bendij', impTu: 'bendice' },
+  maldecir: { stem: 'i', yo: 'maldigo', pretStem: 'maldij', impTu: 'maldice' },
+  errar: { stem: 'ie' },
+  erguir: { stem: 'i' },
   caber: { yo: 'quepo', pretStem: 'cup', futStem: 'cabr' },
   tener: { stem: 'ie', yo: 'tengo', pretStem: 'tuv', futStem: 'tendr', impTu: 'ten' },
   venir: { stem: 'ie', yo: 'vengo', pretStem: 'vin', futStem: 'vendr', impTu: 'ven' },
@@ -106,8 +113,8 @@ export const VERBS: Record<string, VerbSpec> = {
   sonreír: {
     over: {
       pres: ['sonrío', 'sonríes', 'sonríe', 'sonreímos', 'sonreís', 'sonríen'],
-      pret: ['sonreí', 'sonreíste', 'sonrio', 'sonreímos', 'sonreísteis', 'sonrieron'],
-      subj: ['sonría', 'sonrías', 'sonría', 'sonriamos', 'sonriais', 'sonrían'],
+      pret: ['sonreí', 'sonreíste', 'sonrió', 'sonreímos', 'sonreísteis', 'sonrieron'],
+      subj: ['sonría', 'sonrías', 'sonría', 'sonriamos', 'sonriáis', 'sonrían'],
     },
     ger: 'sonriendo',
     part: 'sonreído',
@@ -211,7 +218,7 @@ export const VERBS: Record<string, VerbSpec> = {
   mover: { stem: 'ue' },
   llover: { stem: 'ue' },
   doler: { stem: 'ue' },
-  soler: { stem: 'ue' },
+  soler: { stem: 'ue', defective: ['fut', 'cond', 'imp', 'impNeg', 'futperf', 'condperf'] },
   morder: { stem: 'ue' },
   torcer: { stem: 'ue' },
   promover: { stem: 'ue' },
@@ -286,7 +293,7 @@ export const DERIVED: Record<string, [string, string]> = {
   retener: ['re', 'tener'],
   sostener: ['sos', 'tener'],
   entretener: ['entre', 'tener'],
-  atenerse: ['a', 'tener'],
+  atener: ['a', 'tener'],
   componer: ['com', 'poner'],
   proponer: ['pro', 'poner'],
   suponer: ['su', 'poner'],

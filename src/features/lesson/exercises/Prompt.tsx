@@ -11,6 +11,7 @@ export function Prompt({
   sub,
   filled,
   autoPlay = true,
+  lang,
 }: {
   prompt?: string
   promptLang?: Lang
@@ -21,13 +22,14 @@ export function Prompt({
   /** text to show in the blank after answering */
   filled?: string
   autoPlay?: boolean
+  lang?: string
 }) {
   return (
     <div className="mb-6 flex flex-col gap-4">
       {audioOnly && audio && (
         <div className="flex items-center justify-center gap-4 py-4">
-          <SpeakButton text={audio} size="xl" autoPlay={autoPlay} />
-          <SpeakButton text={audio} size="lg" slow />
+          <SpeakButton text={audio} size="xl" autoPlay={autoPlay} lang={lang} />
+          <SpeakButton text={audio} size="lg" slow lang={lang} />
         </div>
       )}
       {!audioOnly && (prompt || audio) && (

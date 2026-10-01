@@ -11,8 +11,10 @@ export function SpeakButton({
   className = '',
   label,
   autoPlay = false,
+  lang,
 }: {
   text: string
+  lang?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
   slow?: boolean
   className?: string
@@ -23,7 +25,7 @@ export function SpeakButton({
   const autoplayed = useRef(false)
   const play = async () => {
     setPlaying(true)
-    await speak(text, { speed: slow ? 0.6 : 1 })
+    await speak(text, { speed: slow ? 0.6 : 1, lang })
     setPlaying(false)
   }
   useEffect(() => {

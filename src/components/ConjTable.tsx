@@ -9,6 +9,7 @@ export function ConjTable({ verb, tense, compact = false }: { verb: string; tens
         <span className="es font-black text-primary-ink">{verb}</span>
         <span className="text-xs font-bold text-primary-ink">{TENSE_BY_ID[tense].zh}</span>
       </div>
+      {forms.every((f) => f == null) && <div className="px-3 py-3 text-sm text-ink-3">这个动词不使用这个时态</div>}
       <table className="w-full text-left">
         <tbody>
           {forms.map((f, i) =>

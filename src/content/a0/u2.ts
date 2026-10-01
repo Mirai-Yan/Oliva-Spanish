@@ -31,7 +31,7 @@ export const u2: Unit = {
 
 ### 练习大舌音的小技巧
 1. 先快速重复单击音：“得得得得” → 越来越快，舌头放松。
-2. 借助 **tr、dr**：*tres、drama* 里的 r 容易带出颤动。
+2. 用 **tr、dr** 找舌尖的位置：先读 *tres、drama*（这里是弹一下），再保持舌尖放松，把“弹一下”延长成连续颤动。
 3. 想象发动机：“drrrrr”。
 4. 学不会也别着急，很多母语者小时候也要练很久；先保证单击音清楚。`,
       examples: [
@@ -100,9 +100,9 @@ export const u2: Unit = {
 ### b 和 v 读音完全一样
 西语里 **b 和 v 没有区别**，都按上面的 b 来读。*vino*（葡萄酒）和 *bino* 读音相同。v 不要咬下唇！`,
       examples: [
-        ['Dos besos, por favor.', '请行两个贴面礼。'],
+        ['En España se dan dos besos.', '在西班牙，见面要行两次贴面礼。'],
         ['Todo el vino es bueno.', '所有的葡萄酒都很好。'],
-        ['El gato toma agua.', '猫在喝水。'],
+        ['El gato bebe agua.', '猫在喝水。'],
       ],
       origin: `**为什么 b 和 v 读音一样？** 在古西班牙语中，两个音逐渐合并。现在写 b 还是 v，基本取决于这个词在 **拉丁语** 里怎么写：
 - 拉丁语 *vivere* → **vivir**（生活）

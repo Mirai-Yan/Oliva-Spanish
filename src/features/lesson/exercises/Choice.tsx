@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { speak } from '../../../lib/speech/tts'
+import { hasVoice, speak, voicesLoaded } from '../../../lib/speech/tts'
 import type { ExProps } from './types'
 import { Prompt } from './Prompt'
 
@@ -25,14 +25,19 @@ export function Choice({ ex, locked, setAnswer }: ExProps<'choice'>) {
   const pick = (i: number) => {
     if (locked) return
     setSel(i)
-    if (ex.speakOptions || ex.optionLang === 'es') speak(ex.options[i])
+    if (ex.speakOptions || ex.optionLang === 'es') speak(ex.options[i], { lang: ex.voiceLang })
   }
 
   const filled = locked && ex.cloze ? ex.options[ex.answer] : sel != null && ex.cloze ? ex.options[sel] : undefined
 
   return (
     <div>
-      <Prompt prompt={ex.prompt} promptLang={ex.promptLang} audio={ex.audio} audioOnly={ex.audioOnly} cloze={ex.cloze} sub={ex.sub} filled={filled} />
+      <Prompt prompt={ex.prompt} promptLang={ex.promptLang} audio={ex.audio} audioOnly={ex.audioOnly} cloze={ex.cloze} sub={ex.sub} filled={filled} lang={ex.voiceLang} />
+      {ex.voiceLang && voicesLoaded() && !hasVoice(ex.voiceLang) && (
+        <div className="mb-4 rounded-2xl bg-accent-soft px-4 py-2 text-sm font-semibold">
+          这道题需要西班牙（es-ES）口音的语音才能听出区别，但这台设备没有安装，可以点“跳过”。
+        </div>
+      )}
       <div className={`grid gap-3 ${long ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
         {ex.options.map((o, i) => {
           let cls = 'tile'

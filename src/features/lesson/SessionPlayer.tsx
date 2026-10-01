@@ -4,6 +4,7 @@ import { ProgressBar } from '../../components/ProgressBar'
 import { SpeedControl } from '../../components/Speak'
 import { Sheet } from '../../components/Sheet'
 import { Mascot } from '../../components/Mascot'
+import { VoiceNotice } from '../../components/VoiceNotice'
 import { generateJSON } from '../../lib/gemini/client'
 import { JUDGE_SCHEMA, judgePrompt } from '../../lib/gemini/prompts'
 import { isTeach, type Exercise, type Outcome } from '../../lib/exercises/types'
@@ -253,6 +254,7 @@ export function SessionPlayer({
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-48 pt-2 md:px-6">
+        <VoiceNotice className="mb-4" />
         <h1 className="mb-5 text-xl font-black md:text-2xl">{ex.title}</h1>
         <div key={pos + ':' + ex.key} className="anim-fade">
           {teach ? (

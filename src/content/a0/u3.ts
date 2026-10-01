@@ -54,7 +54,7 @@ export const u3: Unit = {
 | **gue, gui** | [g]，**u 不发音** | *guerra、guitarra* |
 | **güe, güi** | [gw]，u 要读 | *pingüino、bilingüe* |
 | **ge, gi** | [x] | *gente、girasol* |
-| **ja, je, ji, jo, ju** | [x] | *jamón、ajo、jugo* |
+| **ja, je, ji, jo, ju** | [x] | *jamón、ajo、joven* |
 
 ### [x] 怎么发？
 和拼音 **h**（喝）很像，但舌根更抬高，摩擦更强，有点像清嗓子。*jota* 读 “ho-ta” 的感觉。
@@ -74,21 +74,22 @@ export const u3: Unit = {
       title: 'll、y、ñ、ch、x',
       titleEs: 'La ll, la y, la ñ, la ch y la x',
       level: 'A0',
-      summary: 'll 和 y 大多数人读得一样；ñ 像“你”；ch 像“吃”但不卷舌；x 一般读 [ks]。',
+      summary: 'll 和 y 大多数人读得一样；ñ 是一个舌面鼻音（a-ño）；ch 像英语 church 的 ch，不卷舌、气流弱；x 一般读 [ks]。',
       body: `| 拼写 | 读音提示 | 例词 |
 |---|---|---|
 | **ll** | 像“耶”开头的 y，略带摩擦 | *llamar、calle、pollo* |
 | **y**（元音前） | 同 ll | *yo、playa、mayo* |
 | **y**（词尾或单独） | 就是元音 i | *hoy、muy、y* |
-| **ñ** | 像“你”的 n + i 连读 | *niño、año、mañana* |
-| **ch** | 介于“吃”和“七”之间，舌头不卷 | *chocolate、noche* |
+| **ñ** | 一个音：舌面贴上腭的鼻音，像“娘”的开头 | *niño、año、mañana* |
+| **ch** | 像英语 *church* 的 ch，舌尖不卷，气流弱 | *chocolate、noche* |
 | **x** | 一般读 [ks] | *taxi、examen* |
 
 ### ll 和 y：yeísmo
 今天绝大多数西语母语者把 **ll** 和 **y** 读得一样，这叫 *yeísmo*，是标准读音。阿根廷、乌拉圭人把它们读成类似“诗”或英语 *she* 的音：*yo* 听起来像 “sho”。
 
-### ñ 要一口气读
-*año* 读成 “a-nio”，不是 “an-yo”，n 和 i 融成一个音。`,
+### ñ 是一个音，不是 n + i
+发 **ñ** 时舌尖抵住下齿，**舌面** 贴住上腭，气流从鼻腔出来。它属于后一个音节：*a-ño*、*ni-ño*、*ma-ña-na*。
+对比 *Antonio*（an-to-nio）里的 *ni*：那是 n 和 i 两个音，而 *ñ* 只有一个。`,
       examples: [
         ['Hoy llamo a mi amigo.', '今天我给朋友打电话。'],
         ['Mañana voy a la playa.', '明天我去海滩。'],
@@ -101,7 +102,7 @@ export const u3: Unit = {
 
 对比意大利语 *chiamare*、葡萄牙语 *chamar*，你会发现它们是同一个词的不同变化。`,
       latam: '阿根廷、乌拉圭把 ll / y 读成 [ʃ] 或 [ʒ]：*calle* 听起来像 “ca-she”。',
-      pitfalls: ['把 *ch* 卷舌读成“吃”。西语 ch 舌尖不卷，更接近“七”。', '把 *muy、hoy* 词尾的 y 读成辅音。'],
+      pitfalls: ['把 *ch* 卷舌读成“吃”，或像“七”那样用力送气。西语 ch 舌尖不卷、气流弱。', '把 *ñ* 读成 n + i 两个音。', '把 *muy、hoy* 词尾的 y 读成辅音。'],
     },
   ],
   words: [],
@@ -109,9 +110,9 @@ export const u3: Unit = {
   cloze: [],
   readings: [],
   pron: [
-    { g: 'a0-czs', type: 'pair', a: 'casa', b: 'caza', focus: 's / z（西班牙读音）' },
-    { g: 'a0-czs', type: 'pair', a: 'coser', b: 'cocer', focus: 's / c（西班牙读音）' },
-    { g: 'a0-czs', type: 'pair', a: 'masa', b: 'maza', focus: 's / z（西班牙读音）' },
+    { g: 'a0-czs', type: 'pair', a: 'casa', b: 'caza', focus: 's / z（西班牙读音）', spain: true },
+    { g: 'a0-czs', type: 'pair', a: 'coser', b: 'cocer', focus: 's / c（西班牙读音）', spain: true },
+    { g: 'a0-czs', type: 'pair', a: 'masa', b: 'maza', focus: 's / z（西班牙读音）', spain: true },
     { g: 'a0-czs', type: 'spell', word: 'cena', zh: '晚饭' },
     { g: 'a0-czs', type: 'spell', word: 'cine', zh: '电影院' },
     { g: 'a0-czs', type: 'spell', word: 'queso', zh: '奶酪' },
@@ -132,7 +133,7 @@ export const u3: Unit = {
     { g: 'a0-gj', type: 'spell', word: 'pingüino', zh: '企鹅' },
     { g: 'a0-gj', type: 'spell', word: 'guapo', zh: '帅气的' },
     { g: 'a0-gj', type: 'spell', word: 'girasol', zh: '向日葵' },
-    { g: 'a0-gj', type: 'spell', word: 'jugo', zh: '果汁' },
+    { g: 'a0-gj', type: 'spell', word: 'joven', zh: '年轻的' },
     { g: 'a0-gj', type: 'spell', word: 'juego', zh: '游戏' },
     { g: 'a0-gj', type: 'stress', word: 'bilingüe' },
     { g: 'a0-llyn', type: 'pair', a: 'cana', b: 'caña', focus: 'n / ñ' },

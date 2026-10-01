@@ -10,7 +10,12 @@ function textOf(node: ReactNode): string {
   return ''
 }
 
-const hasLatin = (s: string) => /[a-záéíóúñü]/i.test(s) && !/[一-鿿]/.test(s)
+/** Only real Spanish words/phrases are tappable: no CJK text or punctuation, a vowel, at least two letters. */
+const hasLatin = (s: string) => {
+  if (/[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]/.test(s)) return false
+  const letters = s.match(/\p{L}/gu) ?? []
+  return letters.length >= 2 && /[aeiouáéíóúü]/i.test(s)
+}
 
 /** Markdown with GFM tables; bold Spanish text is tappable to hear it. */
 export function Markdown({ children, className = '' }: { children: string; className?: string }) {

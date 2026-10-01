@@ -37,7 +37,7 @@ export const u02: Unit = {
 
 > 💡 学单词时 **连冠词一起记**：不记 *día*，记 *el día*。`,
       examples: [
-        ['El día es bonito.', '天气（这一天）很好。'],
+        ['Hoy es un día bonito.', '今天天气很好。'],
         ['La mano y el pie.', '手和脚。'],
         ['El problema es el idioma.', '问题在于语言。'],
         ['Ella es periodista.', '她是记者。'],
@@ -210,7 +210,7 @@ export const u02: Unit = {
     { id: 's5', es: '¿A qué te dedicas?', zh: '你是做什么的？', g: ['a1-origen'] },
     { id: 's6', es: 'Soy ingeniero.', zh: '我是工程师。', alt: ['Soy ingeniera'], g: ['a1-origen', 'a1-articulos'], distract: ['un', 'una'] },
     { id: 's7', es: 'Mi madre es médica.', zh: '我妈妈是医生。', g: ['a1-genero'], distract: ['médico', 'una'] },
-    { id: 's8', es: 'El día es bonito.', zh: '天气（这一天）很好。', g: ['a1-genero'], distract: ['la', 'bonita'] },
+    { id: 's8', es: 'Hoy es un día bonito.', zh: '今天天气很好。', g: ['a1-genero'], distract: ['una', 'bonita'] },
     { id: 's9', es: 'La mano de Ana.', zh: '安娜的手。', g: ['a1-genero'], distract: ['el'] },
     { id: 's10', es: 'El idioma es el problema.', zh: '语言是个问题。', g: ['a1-genero'], distract: ['la'] },
     { id: 's11', es: 'Es un chico español.', zh: '他是一个西班牙男孩。', g: ['a1-articulos'], distract: ['una', 'española'] },
@@ -229,7 +229,7 @@ export const u02: Unit = {
     { id: 's24', es: '¿Hablas inglés?', zh: '你会说英语吗？', g: ['a1-origen'] },
   ],
   cloze: [
-    { id: 'c1', text: '___ día es bonito.', answers: ['El'], options: ['El', 'La', 'Un'], zh: '天气很好。', g: ['a1-genero'], explain: 'día 虽然以 -a 结尾，但是阳性。' },
+    { id: 'c1', text: 'Hoy es ___ día muy bonito.', answers: ['un'], options: ['un', 'una', 'el'], zh: '今天天气很好。', g: ['a1-genero'], explain: 'día 虽然以 -a 结尾，但是阳性，所以用 un。' },
     { id: 'c2', text: 'Levanta ___ mano.', answers: ['la'], options: ['la', 'el', 'los'], zh: '举手。', g: ['a1-genero'], explain: 'mano 以 -o 结尾，但是阴性。' },
     { id: 'c3', text: '___ problema es el idioma.', answers: ['El'], options: ['El', 'La', 'Una'], zh: '问题在于语言。', g: ['a1-genero'], explain: 'problema 虽然以 -a 结尾，却是阳性：el problema。' },
     { id: 'c4', text: 'Es ___ foto de Madrid.', answers: ['una'], options: ['una', 'un', 'unos'], zh: '这是一张马德里的照片。', g: ['a1-genero', 'a1-articulos'], explain: 'foto 是 fotografía 的缩写，阴性。' },

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { build, type LevelPack } from './index'
 import a0 from './a0'
 import a1 from './a1'
-import { lessonSession, unitTest, buildExam } from '../lib/exercises/generate'
+import { lessonSession, unitTest, buildExam, wordLabel, wordSpeech, wordAnswers } from '../lib/exercises/generate'
+import type { Word } from './types'
 import { conjugate } from '../lib/conjugate'
 import { isTeach } from '../lib/exercises/types'
 import { normalizeAnswer, wordTokens } from '../lib/text/normalize'
@@ -107,6 +108,19 @@ describe('content integrity', () => {
     const ex = buildExam(db, { unitIds: db.units.filter((u) => u.level === 'A1').map((u) => u.id), skills: ['vocab', 'grammar', 'listen', 'read'], count: 30 })
     expect(ex.length).toBe(30)
     expect(new Set(ex.map((e) => e.key)).size).toBe(30)
+  })
+
+  it('word labels use articles correctly', () => {
+    for (const w of db.words.filter((x) => /^\p{Lu}/u.test(x.es))) {
+      expect(wordLabel(w), w.id).toBe(w.es)
+      expect(wordSpeech(w), w.id).toBe(w.es)
+      expect(wordAnswers(w).some((a) => /^(el|la) /.test(a)), w.id).toBe(false)
+    }
+    const agua: Word = { id: 't-agua', es: 'agua', zh: '水', pos: 'n', g: 'f', level: 'A1' }
+    expect(wordLabel(agua)).toBe('el agua')
+    const casa: Word = { id: 't-casa', es: 'casa', zh: '家', pos: 'n', g: 'f', level: 'A1' }
+    expect(wordLabel(casa)).toBe('la casa')
+    expect(wordLabel(db.wordById.get('estudiante')!)).toBe('el/la estudiante')
   })
 
   it('lookup finds inflected forms', () => {

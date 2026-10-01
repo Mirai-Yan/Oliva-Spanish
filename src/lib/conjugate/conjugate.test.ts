@@ -87,6 +87,26 @@ const T: [string, Tense, string][] = [
   ['haber', 'subjImpf', 'hubiera hubieras hubiera hubiéramos hubierais hubieran'],
   ['andar', 'pret', 'anduve anduviste anduvo anduvimos anduvisteis anduvieron'],
   ['reír', 'pres', 'río ríes ríe reímos reís ríen'],
+  // RAE 2010: orthographic monosyllables take no accent; hiatus keeps it
+  ['guiar', 'pret', 'guie guiaste guio guiamos guiasteis guiaron'],
+  ['guiar', 'pres', 'guío guías guía guiamos guiais guían'],
+  ['criar', 'subj', 'críe críes críe criemos crieis críen'],
+  ['fiar', 'pret', 'fie fiaste fio fiamos fiasteis fiaron'],
+  ['huir', 'pres', 'huyo huyes huye huimos huis huyen'],
+  ['huir', 'pret', 'hui huiste huyó huimos huisteis huyeron'],
+  ['sonreír', 'pret', 'sonreí sonreíste sonrió sonreímos sonreísteis sonrieron'],
+  ['sonreír', 'subj', 'sonría sonrías sonría sonriamos sonriáis sonrían'],
+  ['dar', 'subj', 'dé des dé demos deis den'],
+  ['oír', 'pres', 'oigo oyes oye oímos oís oyen'],
+  // irregular verbs added after the spelling audit
+  ['satisfacer', 'pres', 'satisfago satisfaces satisface satisfacemos satisfacéis satisfacen'],
+  ['satisfacer', 'pret', 'satisfice satisficiste satisfizo satisficimos satisficisteis satisficieron'],
+  ['bendecir', 'pres', 'bendigo bendices bendice bendecimos bendecís bendicen'],
+  ['bendecir', 'fut', 'bendeciré bendecirás bendecirá bendeciremos bendeciréis bendecirán'],
+  ['delinquir', 'subj', 'delinca delincas delinca delincamos delincáis delincan'],
+  ['errar', 'pres', 'yerro yerras yerra erramos erráis yerran'],
+  ['rehacer', 'pret', 'rehíce rehiciste rehízo rehicimos rehicisteis rehicieron'],
+  ['atenerse', 'pres', 'me atengo te atienes se atiene nos atenemos os atenéis se atienen'],
   // derived
   ['mantener', 'pres', 'mantengo mantienes mantiene mantenemos mantenéis mantienen'],
   ['proponer', 'pret', 'propuse propusiste propuso propusimos propusisteis propusieron'],
@@ -125,6 +145,12 @@ describe('conjugate', () => {
     expect(conjugate('acostarse', 'impNeg')[1]).toBe('no te acuestes')
   })
 
+  it('defective verbs', () => {
+    expect(conjugate('soler', 'fut').every((f) => f == null)).toBe(true)
+    expect(conjugate('soler', 'pres')[0]).toBe('suelo')
+    expect(conjugate('haber', 'imp').every((f) => f == null)).toBe(true)
+  })
+
   it('gerunds & participles', () => {
     expect(gerund('hablar')).toBe('hablando')
     expect(gerund('leer')).toBe('leyendo')
@@ -142,6 +168,8 @@ describe('conjugate', () => {
     expect(participle('descubrir')).toBe('descubierto')
     expect(participle('ver')).toBe('visto')
     expect(participle('mover')).toBe('movido')
+    expect(participle('satisfacer')).toBe('satisfecho')
+    expect(participle('bendecir')).toBe('bendecido')
   })
 
   it('reverse index', () => {

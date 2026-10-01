@@ -40,10 +40,29 @@ function scoreVoice(v: SpeechSynthesisVoice): number {
   return s
 }
 
-function pickVoice(): SpeechSynthesisVoice | undefined {
+const norm = (l: string) => l.toLowerCase().replace('_', '-')
+
+/** Is there an installed voice for this language (prefix match: 'es' or 'es-ES')? */
+export function hasVoice(lang = 'es'): boolean {
+  const l = lang.toLowerCase()
+  return voices.some((v) => norm(v.lang).startsWith(l))
+}
+
+export function voicesLoaded(): boolean {
+  return voices.length > 0
+}
+
+/** The user's chosen voice, unless an exact accent is required (casa / caza needs es-ES). */
+function pickVoice(lang?: string): SpeechSynthesisVoice | undefined {
   const uri = useSettings.getState().voiceURI
   const list = spanishVoices()
-  return (uri && list.find((v) => v.voiceURI === uri)) || list[0]
+  const chosen = uri ? list.find((v) => v.voiceURI === uri) : undefined
+  if (lang) {
+    const want = lang.toLowerCase()
+    if (chosen && norm(chosen.lang) === want) return chosen
+    return list.find((v) => norm(v.lang) === want) ?? chosen ?? list[0]
+  }
+  return chosen || list[0]
 }
 
 let seq = 0
@@ -55,6 +74,8 @@ export interface SpeakOptions {
   speed?: number
   /** absolute rate, overrides speed */
   rate?: number
+  /** require this accent, e.g. 'es-ES' */
+  lang?: string
   onBoundary?: (charIndex: number) => void
 }
 
@@ -67,9 +88,9 @@ export function speak(text: string, opts: SpeakOptions = {}, fromSequence = fals
   const my = ++seq
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text)
-    const v = pickVoice()
+    const v = pickVoice(opts.lang)
     if (v) u.voice = v
-    u.lang = v?.lang ?? 'es-ES'
+    u.lang = v?.lang ?? opts.lang ?? 'es-ES'
     const base = useSettings.getState().rate
     u.rate = clamp(opts.rate ?? base * (opts.speed ?? 1), 0.3, 2)
     u.onend = () => resolve()

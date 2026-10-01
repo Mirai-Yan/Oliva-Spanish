@@ -4,6 +4,7 @@ import type { Reading } from '../content/types'
 import { speak, speakSequence, stopSpeaking } from '../lib/speech/tts'
 import { EsText } from './EsText'
 import { SpeedControl } from './Speak'
+import { VoiceNotice } from './VoiceNotice'
 
 export function ReadingView({ reading }: { reading: Reading }) {
   const flat = useMemo(() => reading.paras.flat(), [reading])
@@ -32,6 +33,7 @@ export function ReadingView({ reading }: { reading: Reading }) {
       </div>
       <h2 className="es text-2xl font-black leading-tight">{reading.title}</h2>
       <div className="mb-4 text-ink-2">{reading.titleZh}</div>
+      <VoiceNotice className="mb-3" />
       <div className="sticky top-14 z-10 -mx-1 mb-4 flex flex-wrap items-center gap-2 bg-bg/90 px-1 py-2 backdrop-blur lg:top-0">
         {playing ? (
           <button

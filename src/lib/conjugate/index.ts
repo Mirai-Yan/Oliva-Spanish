@@ -1,5 +1,5 @@
 import { DERIVED, VERBS, type Six, type StemChange, type VerbSpec } from './verbs'
-import { attachEnclitic, syllabify, withStressFromEnd } from '../text/syllables'
+import { attachEnclitic, removeAccents, stressIndex, syllabify, withStressFromEnd } from '../text/syllables'
 import { searchKey } from '../text/normalize'
 
 export type Tense =
@@ -58,7 +58,7 @@ export const PERSONS_SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos
 const REFLEXIVE = ['me', 'te', 'se', 'nos', 'os', 'se']
 
 type Cls = 'ar' | 'er' | 'ir'
-type Ortho = 'car' | 'gar' | 'zar' | 'guar' | 'gj' | 'cz' | 'zc' | 'guir' | 'uir' | null
+type Ortho = 'car' | 'gar' | 'zar' | 'guar' | 'gj' | 'cz' | 'zc' | 'guir' | 'quir' | 'uir' | null
 
 const END = {
   pres: { ar: ['o', 'as', 'a', 'amos', 'áis', 'an'], er: ['o', 'es', 'e', 'emos', 'éis', 'en'], ir: ['o', 'es', 'e', 'imos', 'ís', 'en'] },
@@ -104,7 +104,7 @@ function parse(inf: string): Parsed {
   else if (plain.endsWith('zar')) ortho = 'zar'
   else if (plain.endsWith('guar')) ortho = 'guar'
   else if (plain.endsWith('guir')) ortho = 'guir'
-  else if (plain.endsWith('quir')) ortho = null
+  else if (plain.endsWith('quir')) ortho = 'quir'
   else if (plain.endsWith('uir')) ortho = 'uir'
   else if (plain.endsWith('ger') || plain.endsWith('gir')) ortho = 'gj'
   else if (plain.endsWith('cer') || plain.endsWith('cir')) {
@@ -179,6 +179,9 @@ function join(stem: string, ending: string, p: Parsed): string {
       break
     case 'guir':
       if (back && s.endsWith('gu')) s = s.slice(0, -1)
+      break
+    case 'quir':
+      if (back && s.endsWith('qu')) s = s.slice(0, -2) + 'c'
       break
     case 'uir':
       if (s.endsWith('u')) {
@@ -265,7 +268,27 @@ function pretOf(p: Parsed): Forms {
   return applyOver(forms, spec.over?.pret)
 }
 
+/**
+ * RAE 2010: words that are a single syllable in writing take no accent mark
+ * (guio, guie, fie, crio, hui, huis), except diacritic ones like dé / sé, which have a single vowel.
+ * Forms with an accented í / ú next to a strong vowel are hiatus (oí, leí, reís) and keep it.
+ */
+export function monosyllableAccent(form: string): string {
+  if (!/[áéíóú]/.test(form)) return form
+  const plain = removeAccents(form)
+  const vowels = plain.match(/[aeiouü]/g) ?? []
+  if (vowels.length < 2) return form
+  if (/[íú][aeo]|[aeo][íú]/.test(form)) return form
+  return syllabify(plain).length === 1 ? plain : form
+}
+
 function simple(inf: string, tense: Tense): Forms {
+  const spec = (VERBS[inf] ?? VERBS[inf.replace(/ír$/, 'ir')] ?? {}) as VerbSpec
+  if (spec.defective?.includes(tense)) return [null, null, null, null, null, null]
+  return simpleRaw(inf, tense).map((f) => (f == null ? null : monosyllableAccent(f)))
+}
+
+function simpleRaw(inf: string, tense: Tense): Forms {
   const p = parse(inf)
   const { spec, stem, cls, plain } = p
   switch (tense) {
@@ -331,6 +354,11 @@ function participleSimple(inf: string): string {
 
 function prefixForm(prefix: string, form: string): string {
   const combined = prefix + form
+  // re + hice → rehíce: a stressed i/u after a silent h would otherwise form a diphthong with the prefix vowel
+  const hm = form.match(/^h([iu])/)
+  if (hm && /[aeo]$/.test(prefix) && stressIndex(form) === 0 && syllabify(form).length > 1) {
+    return prefix + 'h' + (hm[1] === 'i' ? 'í' : 'ú') + form.slice(2)
+  }
   if (syllabify(form).length === 1) {
     // monosyllables gain a written accent when they become the last syllable of a longer word (ten → mantén)
     const plain = [...combined].map((c) => PLAIN[c] ?? c).join('')
@@ -373,6 +401,9 @@ const COMPOUND: Partial<Record<Tense, Tense>> = {
 /** Conjugate a verb (reflexive infinitives like "levantarse" supported) for all six persons. */
 export function conjugate(verb: string, tense: Tense): Forms {
   const { base, reflexive } = splitReflexive(verb)
+  const d = DERIVED[base]
+  const spec = VERBS[d ? d[1] : base] ?? VERBS[(d ? d[1] : base).replace(/ír$/, 'ir')]
+  if (spec?.defective?.includes(tense)) return [null, null, null, null, null, null]
   const auxTense = COMPOUND[tense]
   if (auxTense) {
     const aux = simple('haber', auxTense)
