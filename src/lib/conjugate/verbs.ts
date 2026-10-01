@@ -303,6 +303,7 @@ export const VERBS: Record<string, VerbSpec> = {
 /** Prefixed verbs that inherit an irregular base: [prefix, base]. */
 export const DERIVED: Record<string, [string, string]> = {
   mantener: ['man', 'tener'],
+  entrever: ['entre', 'ver'],
   obtener: ['ob', 'tener'],
   contener: ['con', 'tener'],
   detener: ['de', 'tener'],

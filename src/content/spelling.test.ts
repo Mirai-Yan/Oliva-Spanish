@@ -7,6 +7,7 @@ import a1 from './a1'
 import a2 from './a2'
 import b1 from './b1'
 import b2 from './b2'
+import c1 from './c1'
 import { conjugate, gerund, participle, isVerbInfinitive, type Tense } from '../lib/conjugate'
 import { DERIVED, VERBS } from '../lib/conjugate/verbs'
 import { NAMES } from './names'
@@ -19,7 +20,7 @@ import { SCENARIOS } from './roleplay'
  */
 
 const spell = nspell(dict as unknown as { aff: Buffer; dic: Buffer })
-const packs: LevelPack[] = [a0, a1, a2, b1, b2]
+const packs: LevelPack[] = [a0, a1, a2, b1, b2, c1]
 const db = build(packs)
 
 // names, places and foreign words that a Spanish dictionary does not list

@@ -18,6 +18,7 @@ const LOADERS: Partial<Record<Level, () => Promise<{ default: LevelPack }>>> = {
   A2: () => import('./a2'),
   B1: () => import('./b1'),
   B2: () => import('./b2'),
+  C1: () => import('./c1'),
 }
 
 export interface ContentDB {
