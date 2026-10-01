@@ -11,12 +11,23 @@ import { hasAI } from '../../store/settings'
 /** Proper nouns (España, México, China) are written with a capital and take no article. */
 const isProper = (w: Word) => /^\p{Lu}/u.test(w.es)
 
+const articleCache = new WeakMap<Word, string>()
+const labelCache = new WeakMap<Word, string>()
+
 export function article(w: Word): string {
+  const hit = articleCache.get(w)
+  if (hit !== undefined) return hit
+  const a = computeArticle(w)
+  articleCache.set(w, a)
+  return a
+}
+
+function computeArticle(w: Word): string {
   if (w.pos !== 'n' || !w.g || isProper(w)) return ''
   if (w.g === 'f') {
-    const first = syllabify(w.es)[0] ?? ''
+    const syl = syllabify(w.es)
     // el agua, el hambre: feminine nouns starting with stressed a-
-    if (/^h?[aá]/i.test(first) && stressIndex(w.es) === 0 && syllabify(w.es).length > 1) return 'el'
+    if (/^h?[aá]/i.test(syl[0] ?? '') && syl.length > 1 && stressIndex(w.es) === 0) return 'el'
     return 'la'
   }
   return w.g === 'm' ? 'el' : 'el/la'
@@ -24,6 +35,14 @@ export function article(w: Word): string {
 
 /** Dictionary-style label: "el libro", "el profesor, la profesora", "alto, alta". */
 export function wordLabel(w: Word): string {
+  const hit = labelCache.get(w)
+  if (hit !== undefined) return hit
+  const l = computeLabel(w)
+  labelCache.set(w, l)
+  return l
+}
+
+function computeLabel(w: Word): string {
   if (w.pos === 'n' && w.g && !isProper(w)) {
     const art = article(w)
     if (w.f) return `${art === 'el/la' ? 'el' : art} ${w.es}, la ${w.f}`
@@ -64,14 +83,32 @@ function levelWords(db: ContentDB, unit: Unit | undefined): Word[] {
 }
 
 function distract<T>(target: T, pool: T[], n: number, key: (t: T) => string, prefer?: (t: T) => boolean): T[] {
-  const tk = key(target)
-  const cand = uniqBy(
-    pool.filter((p) => p !== target && key(p) !== tk),
-    key,
-  )
-  const good = shuffle(cand.filter((c) => (prefer ? prefer(c) : true)))
-  const rest = shuffle(cand.filter((c) => (prefer ? !prefer(c) : false)))
-  return [...good, ...rest].slice(0, n)
+  const seen = new Set([key(target)])
+  const out: T[] = []
+  // draw random candidates from a list until n distinct ones are found (cheap for big pools)
+  const draw = (list: T[]) => {
+    for (let tries = 0; tries < list.length * 3 && out.length < n; tries++) {
+      const p = list[Math.floor(Math.random() * list.length)]
+      if (p === target) continue
+      const k = key(p)
+      if (seen.has(k)) continue
+      seen.add(k)
+      out.push(p)
+    }
+  }
+  if (prefer) draw(pool.filter(prefer))
+  if (out.length < n) draw(pool)
+  if (out.length < n) {
+    // small pools: take whatever distinct items are left
+    for (const p of shuffle(pool)) {
+      if (out.length >= n) break
+      const k = key(p)
+      if (p === target || seen.has(k)) continue
+      seen.add(k)
+      out.push(p)
+    }
+  }
+  return out
 }
 
 function makeChoice<T>(target: T, others: T[], label: (t: T) => string) {
