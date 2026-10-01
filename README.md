@@ -46,4 +46,15 @@ npm test         # 变位引擎、答案判定、课程内容校验
 - **高音质朗读（可选）**：开启后用 Gemini TTS 朗读例句，音频缓存在本机（IndexedDB），每句只请求一次；失败时自动换回系统声音。
 - 在中国大陆需要代理，或填写兼容 Gemini 接口的中转地址。
 
+## 部署（分享给朋友）
+
+`localhost` 只在自己电脑上有效，要让别人打开，需要把构建好的 `dist/` 放到静态托管上：
+
+1. `npm run build`
+2. 打开 [app.netlify.com/drop](https://app.netlify.com/drop)，把 `dist` 文件夹拖进去，得到一个公开链接
+3. 注册 / 登录并认领（claim）这个项目，网站才会长期保留；可以在项目设置里改网址前缀
+4. 以后更新：重新 `npm run build`，再把新的 `dist` 拖到该项目的 Deploys 页面
+
+每个人的学习进度和 Gemini Key 只保存在各自的浏览器里，互不影响。
+
 课程内容为原创，按 CEFR 与塞万提斯学院课程大纲（PCIC）编排。
