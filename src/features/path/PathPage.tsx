@@ -1,5 +1,5 @@
 import { AudioLines, BookA, BookOpen, Check, ClipboardCheck, Crown, FastForward, Headphones, Lock, Newspaper, Puzzle, Star, Trophy } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getContent } from '../../content'
 import { LEVEL_INFO, type Lesson, type LessonKind, type Unit } from '../../content/types'
@@ -127,9 +127,9 @@ export function PathPage() {
       ))}
 
       <div className="card mb-8 flex flex-col items-center gap-2 p-6 text-center">
-        <Mascot mood="think" size={64} />
-        <div className="font-extrabold">更多级别正在路上</div>
-        <div className="text-sm text-ink-2">课程会按 A1 → A2 → B1 → B2 → C1 逐步开放。</div>
+        <Mascot mood="cheer" size={64} />
+        <div className="font-extrabold">终点：C1</div>
+        <div className="text-sm text-ink-2">学完全部单元后，可以用级别结业考和情景对话继续巩固。</div>
       </div>
     </div>
   )
@@ -231,6 +231,21 @@ function LessonNode({ lesson, state, open, onToggle }: { lesson: Lesson; state: 
   const Icon = state === 'locked' ? Lock : state === 'done' && lesson.kind !== 'test' ? Check : KIND_ICON[lesson.kind]
   const rec = useProgress((s) => s.lessons[lesson.id])
   const isTest = lesson.kind === 'test'
+  const popRef = useRef<HTMLDivElement>(null)
+
+  // The popover sits above the node: keep it inside the screen on narrow phones and scroll it into view.
+  useLayoutEffect(() => {
+    const el = popRef.current
+    if (!open || !el) return
+    el.style.setProperty('--shift', '0px')
+    const r = el.getBoundingClientRect()
+    const vw = document.documentElement.clientWidth
+    const pad = 12
+    const shift = r.left < pad ? pad - r.left : r.right > vw - pad ? vw - pad - r.right : 0
+    el.style.setProperty('--shift', `${Math.round(shift)}px`)
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [open])
+
   const style =
     state === 'locked'
       ? 'bg-surface-2 text-ink-3 shadow-[0_6px_0_var(--line)]'
@@ -257,28 +272,39 @@ function LessonNode({ lesson, state, open, onToggle }: { lesson: Lesson; state: 
         {state === 'done' && rec?.best === 1 && <Star size={16} className="absolute -right-0.5 -top-0.5 fill-[var(--gold)] text-gold" />}
       </button>
       {open && (
-        <div className="card anim-pop absolute top-[92px] z-20 w-64 p-4 text-center shadow-xl">
-          <div className="text-xs font-black uppercase tracking-wider text-ink-3">{KIND_ZH[lesson.kind]}</div>
-          <div className="mt-0.5 text-lg font-black">{lesson.title}</div>
-          {state === 'locked' ? (
-            <>
-              <div className="mt-1 text-sm text-ink-2">完成前面的课程后解锁</div>
-              {isTest && (
-                <button type="button" className="btn btn-ghost btn-sm mt-3 w-full" onClick={() => nav(`/lesson/${lesson.id}?jump=1`)}>
-                  <ClipboardCheck size={16} /> 直接参加测试跳级
+        <div
+          ref={popRef}
+          className="absolute bottom-[calc(100%+14px)] left-1/2 z-20 w-64 scroll-mb-28 scroll-mt-24"
+          style={{ transform: 'translateX(calc(-50% + var(--shift, 0px)))' }}
+        >
+          <div className="card anim-pop relative p-4 text-center shadow-xl" style={{ transformOrigin: 'calc(50% - var(--shift, 0px)) 100%' }}>
+            <div className="text-xs font-black uppercase tracking-wider text-ink-3">{KIND_ZH[lesson.kind]}</div>
+            <div className="mt-0.5 text-lg font-black">{lesson.title}</div>
+            {state === 'locked' ? (
+              <>
+                <div className="mt-1 text-sm text-ink-2">完成前面的课程后解锁</div>
+                {isTest && (
+                  <button type="button" className="btn btn-ghost btn-sm mt-3 w-full" onClick={() => nav(`/lesson/${lesson.id}?jump=1`)}>
+                    <ClipboardCheck size={16} /> 直接参加测试跳级
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="mt-1 text-sm text-ink-2">
+                  {state === 'done' ? `已完成 ${rec?.count ?? 1} 次 · 最佳 ${Math.round((rec?.best ?? 1) * 100)}%` : isTest ? '得分 ≥ 80% 即可通关' : `完成可得 ${isTest ? 20 : 10} XP`}
+                </div>
+                <button type="button" className="btn btn-primary mt-3 w-full" onClick={() => nav(`/lesson/${lesson.id}${state === 'done' && !isTest ? '?review=1' : ''}`)}>
+                  {state === 'done' ? (isTest ? '再测一次' : '复习 +5 XP') : '开始'}
                 </button>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="mt-1 text-sm text-ink-2">
-                {state === 'done' ? `已完成 ${rec?.count ?? 1} 次 · 最佳 ${Math.round((rec?.best ?? 1) * 100)}%` : isTest ? '得分 ≥ 80% 即可通关' : `完成可得 ${isTest ? 20 : 10} XP`}
-              </div>
-              <button type="button" className="btn btn-primary mt-3 w-full" onClick={() => nav(`/lesson/${lesson.id}${state === 'done' && !isTest ? '?review=1' : ''}`)}>
-                {state === 'done' ? (isTest ? '再测一次' : '复习 +5 XP') : '开始'}
-              </button>
-            </>
-          )}
+              </>
+            )}
+            {/* arrow pointing down at the node */}
+            <div
+              className="absolute -bottom-[8.5px] h-4 w-4 rotate-45 border-b-[1.5px] border-r-[1.5px] border-line bg-surface"
+              style={{ left: 'calc(50% - var(--shift, 0px) - 8px)' }}
+            />
+          </div>
         </div>
       )}
     </div>

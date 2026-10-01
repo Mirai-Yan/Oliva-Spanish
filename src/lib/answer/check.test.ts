@@ -17,6 +17,19 @@ describe('checkAnswer', () => {
     expect(checkAnswer('hablas', ['hablo'], { strict: true }).ok).toBe(false)
     expect(checkAnswer('Ella es alto', ['Ella es alta']).ok).toBe(false)
   })
+  it('ignores upper/lower case, also in strict mode', () => {
+    const clean = (r: ReturnType<typeof checkAnswer>) => r.ok && !r.warn
+    expect(clean(checkAnswer('HOLA', ['hola']))).toBe(true)
+    expect(clean(checkAnswer('madrid', ['Madrid']))).toBe(true)
+    expect(clean(checkAnswer('Está', ['está'], { strict: true }))).toBe(true)
+    expect(clean(checkAnswer('ÁRBOL', ['árbol'], { strictAccents: true }))).toBe(true)
+    expect(clean(checkAnswer('ñandú', ['Ñandú'], { strict: true }))).toBe(true)
+    expect(checkAnswer('ESTA', ['está'], { strict: true }).ok).toBe(false)
+  })
+  it('decomposed accents count as accents', () => {
+    const r = checkAnswer('este\u0301', ['esté'], { strict: true })
+    expect(r.ok && !r.warn).toBe(true)
+  })
   it('alternatives', () => {
     expect(checkAnswer('Me llamo Ana', ['Mi nombre es Ana', 'Me llamo Ana']).ok).toBe(true)
   })

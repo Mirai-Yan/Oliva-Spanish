@@ -1,6 +1,7 @@
-/** Lowercase, drop punctuation and collapse whitespace so answers compare fairly. */
+/** Lowercase (case never counts), unify accent encoding, drop punctuation and collapse whitespace so answers compare fairly. */
 export function normalizeAnswer(s: string): string {
   return s
+    .normalize('NFC')
     .toLowerCase()
     .replace(/[’‘`´]/g, "'")
     .replace(/[¿?¡!.,;:"“”«»()[\]…—–\-/]/g, ' ')
