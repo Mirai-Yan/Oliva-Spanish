@@ -155,6 +155,8 @@ export const VERBS: Record<string, VerbSpec> = {
   perder: { stem: 'ie' },
   preferir: { stem: 'ie' },
   sentir: { stem: 'ie' },
+  arrepentir: { stem: 'ie' },
+  avergonzar: { stem: 'ue' },
   mentir: { stem: 'ie' },
   divertir: { stem: 'ie' },
   convertir: { stem: 'ie' },

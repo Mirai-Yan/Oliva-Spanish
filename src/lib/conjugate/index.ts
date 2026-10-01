@@ -121,6 +121,8 @@ function changeStem(stem: string, type: StemChange | undefined, cls: Cls, strong
     if (i < 0) return stem
     let rep = to
     if (i === 0 && to === 'ue') rep = 'hue'
+    // g + ue keeps the u sounded: avergonzar → avergüenzo
+    if (to === 'ue' && stem[i - 1] === 'g') rep = 'üe'
     if (i === 0 && to === 'ie') rep = 'ye'
     return stem.slice(0, i) + rep + stem.slice(i + from.length)
   }
