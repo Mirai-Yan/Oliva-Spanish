@@ -6,6 +6,7 @@ import a0 from './a0'
 import a1 from './a1'
 import { conjugate, gerund, participle, isVerbInfinitive, type Tense } from '../lib/conjugate'
 import { DERIVED, VERBS } from '../lib/conjugate/verbs'
+import { NAMES } from './names'
 
 /**
  * Spell-checks every Spanish string in the course with a Hunspell Spanish dictionary.
@@ -20,14 +21,13 @@ const db = build(packs)
 // names, places and foreign words that a Spanish dictionary does not list
 const ALLOW = new Set(
   [
-    // people & places in dialogues / readings
-    'Li', 'Ming', 'Wang', 'Lei', 'Chengdu', 'Shanghái', 'Pekín', 'Guadalajara', 'Elena', 'Tom', 'Anna', 'Javier', 'Ruiz', 'López', 'García',
+    ...NAMES,
     // English words used in pronunciation comparisons
     'think', 'this', 'water', 'ladder', 'church', 'she', 'yes', 'hello', 'wifi',
     // correct Spanish words missing from the Hunspell list
-    'pingüino', 'yeísmo', 'Londres', 'Texas',
+    'pingüino', 'yeísmo', 'chile',
     // spelling fragments taught in A0 (qu, gu, gü, ll, rr…)
-    'qu', 'gu', 'gü', 'gue', 'gui', 'güe', 'güi', 'qui', 'll', 'rr', 'ch', 'ja', 'je', 'ji', 'jo', 'ju', 'za', 'zo', 'zu', 'ga', 'go', 'gu', 'ge', 'gi', 'ca', 'co', 'cu', 'ce', 'ci',
+    'qu', 'gu', 'gü', 'gue', 'gui', 'güe', 'güi', 'qui', 'll', 'rr', 'ch', 'ja', 'je', 'ji', 'jo', 'ju', 'za', 'zo', 'zu', 'ga', 'go', 'gu', 'ge', 'gi', 'ca', 'co', 'cu', 'ce', 'ci', 'ie', 'ue',
     // archaic forms quoted in history notes
     'vuesa', 'vuesarced', 'Quixote', 'coraçón',
   ].map((w) => w.toLowerCase()),
@@ -52,8 +52,12 @@ interface Hit {
 
 function check(where: string, text: string | undefined, out: Hit[]) {
   if (!text || CJK.test(text) || PHONETIC.test(text)) return
+  // capitalised words inside a sentence are names; sentence-initial words are still checked
+  const midNames = new Set<string>()
+  for (const m of text.matchAll(/(?<=[\p{L},;:]\s+)(\p{Lu}\p{L}+)/gu)) midNames.add(m[1])
   for (const t of tokens(text)) {
     if (t.length <= 1) continue
+    if (midNames.has(t)) continue
     if (ALLOW.has(t.toLowerCase())) continue
     if (spell.correct(t) || spell.correct(t.toLowerCase())) continue
     out.push({ where, word: t, text })
@@ -98,7 +102,8 @@ describe('Spanish spelling in course content', () => {
         for (const f of fragments(g.origin, false)) check(`${g.id}.origin`, f, hits)
         check(`${g.id}.titleEs`, g.titleEs, hits)
       }
-      for (const s of u.sentences) [s.es, ...(s.alt ?? []), ...(s.distract ?? [])].forEach((t) => check(s.id, t, hits))
+      // word-bank distractors may be deliberately wrong forms (quieremos), so they are not checked
+      for (const s of u.sentences) [s.es, ...(s.alt ?? [])].forEach((t) => check(s.id, t, hits))
       // distractor options can be deliberately wrong (canciónes), so only answers are checked
       for (const c of u.cloze) for (const a of c.answers) check(c.id, c.text.replace('___', a), hits)
       for (const d of u.dialogues ?? []) d.lines.forEach((l, i) => check(`${d.id}.${i}`, l.es, hits))
