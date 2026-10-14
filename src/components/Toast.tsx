@@ -21,7 +21,7 @@ export function Toaster() {
   const items = useToasts((s) => s.items)
   if (!items.length) return null
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-4 z-[70] flex flex-col items-center gap-2 px-4">
+    <div className="print-hide pointer-events-none fixed inset-x-0 top-4 z-[70] flex flex-col items-center gap-2 px-4">
       {items.map((t) => {
         const Icon = t.kind === 'ok' ? CheckCircle2 : t.kind === 'warn' ? TriangleAlert : Info
         return (

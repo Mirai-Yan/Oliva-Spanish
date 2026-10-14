@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom'
 import { db } from '../../store/db'
 import { useRun } from '../../store/run'
 import { BreakdownList } from './Breakdown'
+import { MyPapers } from '../paper/MyPapers'
 
 const SKILLS: { id: ExamSkill; label: string }[] = [
   { id: 'vocab', label: '词汇' },
@@ -61,7 +62,9 @@ export function ExamPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="考试" sub="级别结业考，或自由组合单元和知识点生成模拟卷" />
+      <PageHeader title="考试" sub="拍照出卷、级别结业考，或自由组合单元和知识点生成模拟卷" />
+
+      <MyPapers />
 
       <Section title={<span className="flex items-center gap-2"><Award size={18} /> 级别结业考</span>}>
         <div className="grid gap-3 sm:grid-cols-2">

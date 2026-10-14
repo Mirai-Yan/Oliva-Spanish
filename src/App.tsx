@@ -56,6 +56,15 @@ const ExamRunPage = page(
   "ExamRunPage",
 );
 const TalkPage = page(() => import("./features/talk/TalkPage"), "TalkPage");
+const PhotoPaperPage = page(
+  () => import("./features/paper/PhotoPaperPage"),
+  "PhotoPaperPage",
+);
+const PaperPage = page(() => import("./features/paper/PaperPage"), "PaperPage");
+const PaperPrintPage = page(
+  () => import("./features/paper/PaperPrintPage"),
+  "PaperPrintPage",
+);
 const TalkChat = page(() => import("./features/talk/TalkChat"), "TalkChat");
 const PlacementPage = page(
   () => import("./features/placement/PlacementPage"),
@@ -110,6 +119,7 @@ export default function App() {
               <Route path="/review/session" element={<ExamRunPage />} />
               <Route path="/talk/:id" element={<TalkChat />} />
               <Route path="/placement" element={<PlacementPage />} />
+              <Route path="/exam/paper/:id/print" element={<PaperPrintPage />} />
               <Route element={<Layout />}>
                 <Route index element={<PathPage />} />
                 <Route path="/unit/:id" element={<UnitPage />} />
@@ -125,6 +135,8 @@ export default function App() {
                 <Route path="/review/cards" element={<CardsPage />} />
                 <Route path="/review/mistakes" element={<MistakesPage />} />
                 <Route path="/exam" element={<ExamPage />} />
+                <Route path="/exam/photo" element={<PhotoPaperPage />} />
+                <Route path="/exam/paper/:id" element={<PaperPage />} />
                 <Route path="/talk" element={<TalkPage />} />
                 <Route path="/me" element={<MePage />} />
                 <Route path="/settings" element={<SettingsPage />} />

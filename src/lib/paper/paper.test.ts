@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Outcome } from '../exercises/types'
-import { configTotal, matchGroups, paperToExercises, paperTotal } from './exercises'
+import { fitSize, pixelBox, rectFromPoints, tinyRect } from './geometry'
+import { configTotal, fitTotal, matchGroups, paperToExercises, paperTotal } from './exercises'
 import { sanitizePaper } from './sanitize'
 import { scorePoints, sectionOfKey } from './score'
 import { paperFileText, parsePaperFile } from './share'
@@ -131,8 +132,13 @@ describe('paperToExercises + scorePoints', () => {
     expect(matchGroups(0)).toEqual([])
   })
 
-  it('totals the configuration', () => {
+  it('totals the configuration and fits it to 100', () => {
     expect(configTotal(DEFAULT_CONFIG)).toBe(100)
+    expect(configTotal(fitTotal(config))).toBe(100)
+    const odd = { ...config, sections: { ...config.sections, match: { count: 7, points: 1 }, cloze: { count: 0, points: 4 } } }
+    const fitted = fitTotal(odd)
+    expect(Math.abs(configTotal(fitted) - 100)).toBeLessThanOrEqual(3)
+    expect(fitted.sections.cloze.points).toBe(4)
   })
 })
 
@@ -145,5 +151,19 @@ describe('share files', () => {
   })
   it('rejects other files', () => {
     expect(() => parsePaperFile('{"app":"oliva","version":1}')).toThrow(/不是 Oliva 的试卷/)
+  })
+})
+
+
+describe('region geometry', () => {
+  it('normalizes drag direction and clamps', () => {
+    expect(rectFromPoints({ x: 0.8, y: 0.9 }, { x: 0.2, y: 0.1 })).toEqual({ x: 0.2, y: 0.1, w: 0.6000000000000001, h: 0.8 })
+    expect(rectFromPoints({ x: -0.2, y: 0.5 }, { x: 1.3, y: 0.6 })).toMatchObject({ x: 0, w: 1 })
+    expect(tinyRect({ x: 0, y: 0, w: 0.01, h: 0.5 })).toBe(true)
+  })
+  it('maps to pixels inside the image', () => {
+    expect(pixelBox({ x: 0.5, y: 0.5, w: 0.6, h: 0.6 }, 1000, 800)).toEqual({ sx: 500, sy: 400, sw: 500, sh: 400 })
+    expect(fitSize(4000, 3000, 1600)).toEqual({ w: 1600, h: 1200 })
+    expect(fitSize(800, 600, 1600)).toEqual({ w: 800, h: 600 })
   })
 })

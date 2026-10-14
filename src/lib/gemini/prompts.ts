@@ -171,3 +171,124 @@ export function roleplayHandoffPrompt(s: Scenario, level: string) {
 
 现在请你开始扮演角色，第一句话是：「${s.opening}」。我会用西班牙语回答你。当我说「结束」时，请跳出角色，用中文给我点评：每个任务是否完成、我说错的句子和正确说法、可以更地道的表达，并按 100 分制打分。`
 }
+
+// ---------- photo papers ----------
+
+const optionsItem = (desc: string) => ({ type: 'ARRAY', items: { type: 'STRING' }, description: desc })
+
+export const PAPER_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING', description: '简短的试卷标题' },
+    scope: { type: 'STRING', description: '一句中文：这份卷子考查的范围' },
+    match: {
+      type: 'ARRAY',
+      items: { type: 'OBJECT', properties: { es: { type: 'STRING' }, zh: { type: 'STRING' } }, required: ['es', 'zh'] },
+    },
+    tf: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          sentence: { type: 'STRING', description: '西语句子' },
+          correct: { type: 'BOOLEAN' },
+          focus: { type: 'STRING', enum: ['vocab', 'grammar'] },
+          explain: { type: 'STRING', description: '中文解析' },
+          fix: { type: 'STRING', description: '错误句的正确写法；正确句留空' },
+        },
+        required: ['sentence', 'correct', 'focus', 'explain'],
+      },
+    },
+    choice: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          question: { type: 'STRING' },
+          questionLang: { type: 'STRING', enum: ['es', 'zh'] },
+          options: optionsItem('恰好 3 个选项，不带 A/B/C 前缀'),
+          answer: { type: 'INTEGER', description: '正确选项的下标 0-2' },
+          explain: { type: 'STRING', description: '中文解析' },
+        },
+        required: ['question', 'questionLang', 'options', 'answer', 'explain'],
+      },
+    },
+    cloze: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          sentence: { type: 'STRING', description: '西语句子，恰好包含一个 ___' },
+          answer: { type: 'STRING' },
+          alts: { type: 'ARRAY', items: { type: 'STRING' }, description: '其它也正确的写法，没有就留空数组' },
+          hintZh: { type: 'STRING', description: '整句的中文意思' },
+          explain: { type: 'STRING', description: '中文解析' },
+        },
+        required: ['sentence', 'answer', 'hintZh', 'explain'],
+      },
+    },
+    listen: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          es: { type: 'STRING', description: '朗读给学生听的西语句子' },
+          zh: { type: 'STRING', description: '这句的中文意思' },
+          options: optionsItem('恰好 3 个中文意思选项'),
+          answer: { type: 'INTEGER', description: '正确选项的下标 0-2' },
+        },
+        required: ['es', 'zh', 'options', 'answer'],
+      },
+    },
+  },
+  required: ['title', 'scope', 'match', 'tf', 'choice', 'cloze', 'listen'],
+}
+
+const PAPER_RULES: Record<'match' | 'tf' | 'choice' | 'cloze' | 'listen', (n: number) => string> = {
+  match: (n) => `match：${n} 对西语单词或短语与中文意思（名词带定冠词，如 la cocina）。`,
+  tf: (n) => `tf：${n} 个西语句子，大约一半正确、一半错误。错误的句子只错一处，错在词汇或语法（如阴阳性和单复数一致、动词变位、ser/estar、介词、冠词）；focus 标明考的是 vocab 还是 grammar；explain 用中文说明对在哪里或错在哪里；错误句在 fix 里写出改正后的句子。`,
+  choice: (n) => `choice：${n} 道三选一单项选择题。题干可以是带 ___ 的西语句子，也可以是中文提问；options 恰好 3 个，干扰项要合理、不能一眼排除；answer 是正确选项的下标（0、1 或 2），不要总把正确答案放在第一个；explain 用中文解析。`,
+  cloze: (n) => `cloze：${n} 道填空题。sentence 是西语句子，恰好包含一个 ___；answer 是唯一正确的填法（一个词或很短的词组）；如果还有别的正确写法放进 alts；hintZh 写整句的中文意思；explain 用中文解析。`,
+  listen: (n) => `listen：${n} 道听力题。es 是一个简短的西语句子（学生只能听，看不到文字）；options 是 3 个中文意思，只有一个正确；answer 是正确选项的下标。`,
+}
+
+export function paperPrompt(o: {
+  level: string
+  note: string
+  counts: Partial<Record<'match' | 'tf' | 'choice' | 'cloze' | 'listen', number>>
+  images: number
+  /** sentences already on the paper (top-up requests must not repeat them) */
+  avoid?: string[]
+  /** no structured output available (Gemini web app): ask for a JSON code block */
+  handoff?: boolean
+}): string {
+  const sections = (Object.keys(PAPER_RULES) as (keyof typeof PAPER_RULES)[]).map((k) => {
+    const n = o.counts[k] ?? 0
+    return n > 0 ? `- ${PAPER_RULES[k](n)}` : `- ${k}：这类题不要出，返回空数组 []。`
+  })
+  return `你是一位西班牙语老师，要给一名中文母语的学生出一份测验卷。
+${o.images ? `学生上传了 ${o.images} 张课本或讲义的图片（${o.handoff ? '按顺序编号' : '每张图后面有编号和说明'}），只考图片里框选或出现的内容：图中的单词、短语和语法点。图中例句不够时，可以用图中的词汇和语法编写新的句子，但不要引入超出图片范围太多的新词。` : '根据下面的范围说明出题。'}
+${o.note ? `学生对范围的补充说明：${o.note}\n` : ''}学生水平：${o.level}。使用西班牙本土的西班牙语（包括 vosotros），所有解析都用简体中文。
+
+题目要求：
+${sections.join('\n')}
+${o.avoid?.length ? `\n下面这些题目已经出过了，不要重复：\n${o.avoid.slice(0, 60).map((s) => `· ${s}`).join('\n')}\n` : ''}
+另外给出 title（简短的试卷标题）和 scope（一句中文，说明考查范围）。${
+    o.handoff
+      ? `
+
+只输出一个 JSON 代码块，不要输出其它文字，格式严格如下（数组里放题目）：
+\`\`\`json
+{
+  "title": "第三课 · 我的家",
+  "scope": "家居词汇和 estar 表示位置",
+  "match": [{ "es": "la cocina", "zh": "厨房" }],
+  "tf": [{ "sentence": "El baño es a la derecha.", "correct": false, "focus": "grammar", "explain": "表示位置要用 estar。", "fix": "El baño está a la derecha." }],
+  "choice": [{ "question": "¿Dónde ___ las llaves?", "questionLang": "es", "options": ["son", "están", "hay"], "answer": 1, "explain": "表示位置用 estar。" }],
+  "cloze": [{ "sentence": "Mi piso ___ muy luminoso.", "answer": "es", "alts": [], "hintZh": "我的公寓很明亮。", "explain": "描述特征用 ser。" }],
+  "listen": [{ "es": "La terraza es pequeña.", "zh": "露台很小。", "options": ["露台很大。", "露台很小。", "厨房很小。"], "answer": 1 }]
+}
+\`\`\``
+      : ''
+  }`
+}

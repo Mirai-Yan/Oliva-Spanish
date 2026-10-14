@@ -133,3 +133,32 @@ export function paperToExercises(p: Paper, paperId: number): { exercises: Exerci
   }
   return { exercises, points }
 }
+
+/**
+ * Scale per-question points so the paper totals `target` (default 100),
+ * in half-point steps; one section absorbs the rounding when it can.
+ */
+export function fitTotal(c: PaperConfig, target = 100): PaperConfig {
+  const active = SECTIONS.filter((s) => c.sections[s.id].count > 0)
+  const total = configTotal(c)
+  if (!active.length) return c
+  const sections = structuredClone(c.sections)
+  const k = total > 0 ? target / total : 1
+  for (const s of active) {
+    const cur = sections[s.id].points > 0 ? sections[s.id].points : 1
+    sections[s.id].points = Math.max(0.5, Math.round(cur * (total > 0 ? k : target / active.reduce((a, x) => a + c.sections[x.id].count, 0)) * 2) / 2)
+  }
+  const next = { ...c, sections }
+  const diff = target - configTotal(next)
+  if (diff !== 0) {
+    // a section whose count lets it absorb the difference in half points
+    const fixer = [...active]
+      .sort((a, b) => sections[b.id].count - sections[a.id].count)
+      .find((s) => {
+        const per = diff / sections[s.id].count
+        return Number.isInteger(per * 2) && sections[s.id].points + per >= 0.5
+      })
+    if (fixer) sections[fixer.id].points += diff / sections[fixer.id].count
+  }
+  return next
+}
