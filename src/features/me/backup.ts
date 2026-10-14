@@ -1,7 +1,12 @@
 import { db } from '../../store/db'
 import { dayKey } from '../../lib/date'
 
-const TABLES = ['cards', 'reviews', 'mistakes', 'notebook', 'exams', 'chats', 'aiDict', 'aiReadings'] as const
+const TABLES = ['cards', 'reviews', 'mistakes', 'notebook', 'exams', 'chats', 'aiDict', 'aiReadings', 'papers', 'userSongs', 'songLyrics'] as const
+
+/** fetched lyrics are re-downloadable; only hand-synced ones go into the backup */
+const exportFilter: Partial<Record<(typeof TABLES)[number], (r: Record<string, unknown>) => boolean>> = {
+  songLyrics: (r) => r.source === 'manual',
+}
 
 export async function exportBackup(includeKey: boolean) {
   const settings = JSON.parse(localStorage.getItem('oliva-settings') ?? '{}')
@@ -13,7 +18,11 @@ export async function exportBackup(includeKey: boolean) {
     settings,
     progress: JSON.parse(localStorage.getItem('oliva-progress') ?? '{}'),
   }
-  for (const t of TABLES) data[t] = await db.table(t).toArray()
+  for (const t of TABLES) {
+    const rows = (await db.table(t).toArray()) as Record<string, unknown>[]
+    const keep = exportFilter[t]
+    data[t] = keep ? rows.filter(keep) : rows
+  }
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
@@ -47,5 +56,5 @@ function reviveCard(r: Record<string, unknown>) {
 }
 
 export async function resetAll() {
-  await Promise.all(TABLES.filter((t) => t !== 'aiDict').map((t) => db.table(t).clear()))
+  await Promise.all([...TABLES.filter((t) => t !== 'aiDict'), 'paperImages'].map((t) => db.table(t).clear()))
 }

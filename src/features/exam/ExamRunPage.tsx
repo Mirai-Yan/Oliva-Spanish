@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { getContent } from '../../content'
 import { pointLabel } from '../../lib/exercises/generate'
+import { scorePoints, type PointsBreakdown } from '../../lib/paper/score'
 import { db } from '../../store/db'
 import { markMistakeRight, markMistakeWrong, trackAnswer } from '../../store/mistakes'
 import { useProgress } from '../../store/progress'
@@ -16,7 +17,7 @@ export function ExamRunPage() {
   const nav = useNavigate()
   const addXp = useProgress((s) => s.addXp)
   const addSkills = useProgress((s) => s.addSkills)
-  const [done, setDone] = useState<{ r: SessionResult; xp: number; breakdown: Record<string, { label: string; c: number; t: number }> } | null>(null)
+  const [done, setDone] = useState<{ r: SessionResult; xp: number; breakdown: Record<string, { label: string; c: number; t: number }>; points?: PointsBreakdown } | null>(null)
   if (!run) return <Navigate to="/" replace />
 
   const onFinish = async (r: SessionResult) => {
@@ -30,7 +31,24 @@ export function ExamRunPage() {
       if (outcome.correct) b.c++
     }
     let xp = 0
-    if (run.kind === 'mistakes') {
+    let points: PointsBreakdown | undefined
+    if (run.kind === 'paper' && run.points) {
+      points = scorePoints(r.items, run.points)
+      const share = points.total ? points.earned / points.total : 0
+      xp = 10 + Math.round(share * 20)
+      await db.exams.add({
+        kind: 'paper',
+        title: run.title,
+        score: share,
+        correct: r.correct,
+        total: r.total,
+        seconds: r.seconds,
+        breakdown: points.sections,
+        createdAt: Date.now(),
+        points: { earned: points.earned, total: points.total },
+        paperId: run.paperId,
+      })
+    } else if (run.kind === 'mistakes') {
       for (const { ex, outcome } of r.items) {
         if (outcome.correct) await markMistakeRight(ex.key)
         else await markMistakeWrong(ex.key, outcome.user)
@@ -55,7 +73,28 @@ export function ExamRunPage() {
     }
     addXp(xp, r.seconds)
     addSkills(skillTally(r))
-    setDone({ r, xp, breakdown })
+    setDone({ r, xp, breakdown, points })
+  }
+
+  if (done && done.points) {
+    const { earned, total, sections } = done.points
+    const share = total ? earned / total : 0
+    return (
+      <ResultScreen
+        result={done.r}
+        xp={done.xp}
+        title={`得分 ${earned} / ${total}`}
+        subtitle={run.title}
+        passed={share >= 0.6}
+        score={{ label: '得分', value: `${earned}/${total}` }}
+        actions={
+          <button type="button" className="btn btn-primary flex-1" onClick={() => nav(run.paperId ? `/exam/paper/${run.paperId}` : '/exam')}>
+            完成
+          </button>
+        }
+        extra={<BreakdownList breakdown={sections} title="各部分得分" keepOrder />}
+      />
+    )
   }
 
   if (done) {
@@ -81,6 +120,7 @@ export function ExamRunPage() {
     <SessionPlayer
       exercises={run.exercises}
       retryWrong={run.retryWrong ?? false}
+      allowSkip={run.allowSkip ?? true}
       timeLimit={run.timeLimit}
       contextLabel={run.title}
       onAnswer={run.kind === 'mistakes' ? undefined : trackAnswer}

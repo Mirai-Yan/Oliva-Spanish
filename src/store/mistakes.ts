@@ -1,4 +1,5 @@
 import type { Exercise, Outcome } from '../lib/exercises/types'
+import { questionText } from '../lib/exercises/text'
 import { db } from './db'
 import { lapseWords } from './review'
 
@@ -10,9 +11,11 @@ export async function saveMistake(ex: Exercise, o: Outcome) {
     key: ex.key,
     ex,
     prompt: ex.title,
+    question: questionText(ex) || undefined,
     user: o.user,
     correct: o.expected,
     unitId: ex.ref.unit,
+    source: ex.ref.source,
     grammar: ex.ref.grammar ?? [],
     words: ex.ref.words ?? [],
     count: (prev?.count ?? 0) + 1,

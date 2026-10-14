@@ -15,7 +15,7 @@ export function Choice({ ex, locked, setAnswer }: ExProps<'choice'>) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (locked) return
-      const n = Number(e.key)
+      const n = ex.letters ? 'abcdef'.indexOf(e.key.toLowerCase()) + 1 : Number(e.key)
       if (n >= 1 && n <= ex.options.length) pick(n - 1)
     }
     window.addEventListener('keydown', h)
@@ -48,7 +48,7 @@ export function Choice({ ex, locked, setAnswer }: ExProps<'choice'>) {
           } else if (i === sel) cls += ' tile-on'
           return (
             <button key={i} type="button" className={`${cls} flex items-center gap-3`} onClick={() => pick(i)} disabled={locked}>
-              <span className="kbd hidden sm:inline">{i + 1}</span>
+              {ex.letters ? <span className="kbd font-black">{'ABCDEF'[i]}</span> : <span className="kbd hidden sm:inline">{i + 1}</span>}
               <span className={`text-lg ${ex.optionLang === 'es' ? 'es' : ''}`}>{o}</span>
             </button>
           )

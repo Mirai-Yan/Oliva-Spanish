@@ -25,7 +25,10 @@ export function MistakesPage() {
     for (const r of rows ?? []) {
       let key = 'recent'
       let label = '最近的错题'
-      if (group === 'unit') {
+      if (group === 'unit' && r.source) {
+        key = `paper:${r.source.paperId}`
+        label = `📷 ${r.source.title}`
+      } else if (group === 'unit') {
         key = r.unitId ?? 'other'
         const u = r.unitId ? c.unitById.get(r.unitId) : undefined
         label = u ? `${u.icon} ${u.level} · ${u.title}` : '其他'
@@ -85,6 +88,7 @@ export function MistakesPage() {
                     <div className="text-xs font-black text-ink-3">
                       {r.prompt} · 错 {r.count} 次{r.fixed ? ` · 已连续做对 ${r.fixed} 次` : ''}
                     </div>
+                    {r.question && <div className="es my-0.5 font-semibold">{r.question}</div>}
                     <div className="text-sm">
                       你的答案：<span className="es text-bad">{r.user || '（空）'}</span>
                     </div>
@@ -94,7 +98,7 @@ export function MistakesPage() {
                       </div>
                     )}
                   </div>
-                  <button type="button" className="rounded-lg p-1.5 text-ink-3 hover:bg-surface-2" title="问 AI" onClick={() => openTutor(`这道题我错了，请讲解：\n题型：${r.prompt}\n我的答案：${r.user}\n正确答案：${r.correct}`)}>
+                  <button type="button" className="rounded-lg p-1.5 text-ink-3 hover:bg-surface-2" title="问 AI" onClick={() => openTutor(`这道题我错了，请讲解：\n题型：${r.prompt}${r.question ? `\n题目：${r.question}` : ''}\n我的答案：${r.user}\n正确答案：${r.correct}`)}>
                     <Sparkles size={16} />
                   </button>
                   <button type="button" className="rounded-lg p-1.5 text-ink-3 hover:bg-surface-2" title="删除" onClick={() => db.mistakes.delete(r.key)}>

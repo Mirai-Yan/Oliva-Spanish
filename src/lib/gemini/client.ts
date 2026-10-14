@@ -1,10 +1,20 @@
 import { useSettings, type GeminiSettings } from '../../store/settings'
 
+export interface InlineData {
+  mimeType: string
+  data: string
+}
+
+/** One piece of a multi-part message: text, or inline media (base64). */
+export type GPart = { text: string } | { inline: InlineData }
+
 export interface GMessage {
   role: 'user' | 'model'
   text: string
   /** optional inline media (audio for pronunciation feedback) */
-  inline?: { mimeType: string; data: string }
+  inline?: InlineData
+  /** several media/text parts in order (e.g. photos, each followed by a label); `text` is appended last */
+  parts?: GPart[]
 }
 
 export interface GenerateOptions {
@@ -16,6 +26,8 @@ export interface GenerateOptions {
   schema?: unknown
   signal?: AbortSignal
   maxTokens?: number
+  /** abort the request after this many milliseconds */
+  timeoutMs?: number
 }
 
 export class GeminiError extends Error {
@@ -45,7 +57,11 @@ function modelPath(model: string) {
 function body(o: GenerateOptions) {
   const contents = o.messages.map((m) => ({
     role: m.role,
-    parts: [...(m.inline ? [{ inlineData: m.inline }] : []), { text: m.text }],
+    parts: [
+      ...(m.inline ? [{ inlineData: m.inline }] : []),
+      ...(m.parts ?? []).map((p) => ('inline' in p ? { inlineData: p.inline } : { text: p.text })),
+      ...(m.text ? [{ text: m.text }] : []),
+    ],
   }))
   const generationConfig: Record<string, unknown> = { temperature: o.temperature ?? 0.7 }
   if (o.maxTokens) generationConfig.maxOutputTokens = o.maxTokens
@@ -80,7 +96,8 @@ async function explain(res: Response, model: string): Promise<GeminiError> {
   return new GeminiError(msg, s)
 }
 
-function networkError(e: unknown): GeminiError {
+function networkError(e: unknown, timedOut = false): GeminiError {
+  if (timedOut) return new GeminiError('等待太久，请求已超时。可以减少照片或题目数量后再试', 0)
   if (e instanceof DOMException && e.name === 'AbortError') return new GeminiError('已取消', -1)
   return new GeminiError('无法连接 Gemini。若在中国大陆，需要开启代理，或在「设置 → AI」里填写可用的中转地址。', 0)
 }
@@ -148,6 +165,19 @@ async function post(path: (model: string) => string, o: GenerateOptions): Promis
   let model = await currentModel()
   let retried404 = false
   let retried429 = false
+  // one controller for the caller's signal and the optional timeout
+  const ctl = new AbortController()
+  let timedOut = false
+  if (o.signal) {
+    if (o.signal.aborted) ctl.abort()
+    else o.signal.addEventListener('abort', () => ctl.abort(), { once: true })
+  }
+  const timer = o.timeoutMs
+    ? setTimeout(() => {
+        timedOut = true
+        ctl.abort()
+      }, o.timeoutMs)
+    : undefined
   for (;;) {
     let res: Response
     try {
@@ -155,10 +185,11 @@ async function post(path: (model: string) => string, o: GenerateOptions): Promis
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': c.apiKey.trim() },
         body: body(o),
-        signal: o.signal,
+        signal: ctl.signal,
       })
     } catch (e) {
-      throw networkError(e)
+      clearTimeout(timer)
+      throw networkError(e, timedOut)
     }
     if (res.status === 404 && !retried404) {
       retried404 = true
@@ -174,6 +205,7 @@ async function post(path: (model: string) => string, o: GenerateOptions): Promis
       await sleep(Math.min(8000, Number.isFinite(ra) && ra > 0 ? ra * 1000 : 2500))
       continue
     }
+    clearTimeout(timer)
     if (!res.ok) throw await explain(res, model)
     return res
   }
@@ -225,22 +257,77 @@ export async function* streamGenerate(o: GenerateOptions): AsyncGenerator<string
   }
 }
 
+const FINISH_ZH: Record<string, string> = {
+  MAX_TOKENS: 'AI 的回答太长被截断了，可以减少题目数量后再试',
+  SAFETY: '内容被安全策略拦截，换个说法试试',
+  PROHIBITED_CONTENT: '内容被安全策略拦截，换个说法试试',
+  RECITATION: 'AI 因版权保护（原文复述）停止了回答。可以改用「复制到 Gemini」在网页版里处理',
+  BLOCKLIST: '内容被安全策略拦截，换个说法试试',
+}
+
 export async function generate(o: GenerateOptions): Promise<string> {
   const res = await post(() => 'generateContent', o)
   const j = (await res.json()) as Chunk
   if (j.promptFeedback?.blockReason) throw new GeminiError('内容被安全策略拦截，换个说法试试', 400)
-  return textOf(j)
+  const text = textOf(j)
+  const reason = j.candidates?.[0]?.finishReason ?? ''
+  // a truncated JSON answer is useless; a truncated chat answer is still worth showing
+  if (FINISH_ZH[reason] && (!text.trim() || o.json)) throw new GeminiError(FINISH_ZH[reason], 0)
+  return text
+}
+
+/**
+ * Pull the first complete JSON object/array out of model text:
+ * tolerates ``` fences and prose around it (pasted replies from the Gemini web app).
+ */
+export function extractJSON<T = unknown>(text: string): T {
+  const t = text.trim()
+  try {
+    return JSON.parse(t) as T
+  } catch {
+    /* fall through */
+  }
+  const fenced = t.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fenced) {
+    try {
+      return JSON.parse(fenced[1].trim()) as T
+    } catch {
+      /* fall through */
+    }
+  }
+  // scan for a balanced {...} or [...] (string-aware)
+  for (let start = 0; start < t.length; start++) {
+    const open = t[start]
+    if (open !== '{' && open !== '[') continue
+    const close = open === '{' ? '}' : ']'
+    let depth = 0
+    let inStr = false
+    let esc = false
+    for (let i = start; i < t.length; i++) {
+      const ch = t[i]
+      if (inStr) {
+        if (esc) esc = false
+        else if (ch === '\\') esc = true
+        else if (ch === '"') inStr = false
+        continue
+      }
+      if (ch === '"') inStr = true
+      else if (ch === open) depth++
+      else if (ch === close && --depth === 0) {
+        try {
+          return JSON.parse(t.slice(start, i + 1)) as T
+        } catch {
+          break
+        }
+      }
+    }
+  }
+  throw new GeminiError('AI 返回的格式无法解析，请重试', 0)
 }
 
 export async function generateJSON<T>(o: Omit<GenerateOptions, 'json'>): Promise<T> {
   const text = await generate({ ...o, json: true, temperature: o.temperature ?? 0.4 })
-  try {
-    return JSON.parse(text) as T
-  } catch {
-    const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/)
-    if (m) return JSON.parse(m[0]) as T
-    throw new GeminiError('AI 返回的格式无法解析，请重试', 0)
-  }
+  return extractJSON<T>(text)
 }
 
 export async function listModels(override?: Partial<GeminiSettings>): Promise<ModelInfo[]> {

@@ -192,19 +192,19 @@ export function ExamPage() {
               <div key={h.id} className="card">
                 <button type="button" className="flex w-full items-center gap-3 p-3 text-left" onClick={() => setOpenHist(openHist === h.id ? null : h.id!)}>
                   <span className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-black ${h.score >= 0.8 ? 'bg-ok-soft text-ok-strong' : h.score >= 0.6 ? 'bg-accent-soft text-accent-ink' : 'bg-bad-soft text-bad-strong'}`}>
-                    {Math.round(h.score * 100)}
+                    {h.points ? h.points.earned : Math.round(h.score * 100)}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-bold">{h.title}</span>
                     <span className="block text-xs text-ink-3">
-                      {new Date(h.createdAt).toLocaleString('zh-CN')} · {h.correct}/{h.total}
+                      {new Date(h.createdAt).toLocaleString('zh-CN')} · {h.points ? `${h.points.earned}/${h.points.total} 分` : `${h.correct}/${h.total}`}
                     </span>
                   </span>
                   <ChevronDown size={18} className={`text-ink-3 transition ${openHist === h.id ? 'rotate-180' : ''}`} />
                 </button>
                 {openHist === h.id && (
                   <div className="px-3 pb-3">
-                    <BreakdownList breakdown={h.breakdown} />
+                    <BreakdownList breakdown={h.breakdown} title={h.points ? '各部分得分' : undefined} keepOrder={!!h.points} />
                   </div>
                 )}
               </div>

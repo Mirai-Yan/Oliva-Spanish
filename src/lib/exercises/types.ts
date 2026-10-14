@@ -4,6 +4,8 @@ export interface ExRef {
   unit?: string
   words?: string[]
   grammar?: string[]
+  /** where a non-course question came from (a photo paper) — used to group the mistake notebook */
+  source?: { paperId: number; title: string }
 }
 
 interface Base {
@@ -42,8 +44,15 @@ export type Exercise = Base &
         speakOptions?: boolean
         /** the contrast only exists in this accent (casa / caza needs a Spain voice) */
         voiceLang?: 'es-ES'
+        /** label options A / B / C (papers) */
+        letters?: boolean
       }
-    | { kind: 'match'; pairs: [string, string][] }
+    | {
+        kind: 'match'
+        pairs: [string, string][]
+        /** papers: wrong tries cost points (score = clean share) instead of always passing */
+        graded?: boolean
+      }
     | {
         kind: 'type'
         prompt?: string
@@ -75,4 +84,6 @@ export interface Outcome {
   warn?: 'accent' | 'typo'
   /** skipped (e.g. can't speak now) — not counted */
   skipped?: boolean
+  /** partial credit 0..1 (graded matching); when absent, correct = 1 and wrong = 0 */
+  score?: number
 }

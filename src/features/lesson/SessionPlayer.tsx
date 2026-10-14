@@ -36,7 +36,7 @@ export interface SessionResult {
 
 const PRAISE = ['太棒了！', '¡Muy bien!', '¡Perfecto!', '答对了！', '¡Genial!', '¡Excelente!']
 
-function describe(ex: Exercise): string {
+export function describe(ex: Exercise): string {
   switch (ex.kind) {
     case 'choice':
       return [ex.cloze, ex.prompt, ex.audioOnly ? `（听力：${ex.audio}）` : '', `选项：${ex.options.join(' / ')}`].filter(Boolean).join('\n')
@@ -58,6 +58,7 @@ function describe(ex: Exercise): string {
 export function SessionPlayer({
   exercises,
   retryWrong = true,
+  allowSkip = true,
   timeLimit,
   contextLabel,
   onAnswer,
@@ -66,6 +67,8 @@ export function SessionPlayer({
 }: {
   exercises: Exercise[]
   retryWrong?: boolean
+  /** offer "skip" on listening / speaking items (papers turn it off so every point counts) */
+  allowSkip?: boolean
   /** seconds */
   timeLimit?: number
   contextLabel?: string
@@ -283,7 +286,7 @@ export function SessionPlayer({
           ex.kind === 'match' || ex.kind === 'write' ? null : (
             <div className="border-t-2 border-line bg-surface">
               <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4 md:py-6">
-                {!teach && (ex.skill === 'listen' || ex.kind === 'speak') ? (
+                {allowSkip && !teach && (ex.skill === 'listen' || ex.kind === 'speak') ? (
                   <button type="button" className="btn btn-ghost hidden sm:inline-flex" onClick={() => direct({ correct: true, user: '', expected: '', skipped: true })}>
                     跳过
                   </button>

@@ -22,7 +22,17 @@ export function Match({ ex, locked, finish }: ExProps<'match'>) {
       setSelL(null)
       setSelR(null)
       if (next.size === ex.pairs.length) {
-        setTimeout(() => finish({ correct: true, user: misses ? `配错 ${misses} 次` : '全部配对', expected: '' }), 300)
+        const user = misses ? `配错 ${misses} 次` : '全部配对'
+        const n = ex.pairs.length
+        setTimeout(
+          () =>
+            finish(
+              ex.graded
+                ? { correct: misses === 0, score: Math.max(0, (n - misses) / n), user, expected: ex.pairs.map((p) => `${p[0]} = ${p[1]}`).join('；') }
+                : { correct: true, user, expected: '' },
+            ),
+          300,
+        )
       }
     } else {
       setWrong([l, r])

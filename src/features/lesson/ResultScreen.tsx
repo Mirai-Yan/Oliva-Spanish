@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Mascot } from '../../components/Mascot'
 import { fmtDuration } from '../../lib/date'
 import { sfx } from '../../lib/sfx'
+import { questionText } from '../../lib/exercises/text'
 import { useTutor } from '../tutor/store'
 import type { SessionResult } from './SessionPlayer'
 
@@ -29,6 +30,7 @@ export function ResultScreen({
   passed = true,
   actions,
   extra,
+  score,
 }: {
   result: SessionResult
   xp: number
@@ -37,6 +39,8 @@ export function ResultScreen({
   passed?: boolean
   actions: ReactNode
   extra?: ReactNode
+  /** replaces the accuracy tile, e.g. { label: '得分', value: '85/100' } */
+  score?: { label: string; value: string }
 }) {
   const acc = result.total ? result.correct / result.total : 1
   const wrong = result.items.filter((i) => !i.outcome.correct)
@@ -58,7 +62,7 @@ export function ResultScreen({
         {subtitle && <p className="mt-2 text-ink-2">{subtitle}</p>}
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           <StatTile icon={<Zap size={20} />} label="经验" value={`+${xp}`} color="var(--gold)" />
-          <StatTile icon={<Target size={20} />} label="正确率" value={`${Math.round(acc * 100)}%`} color="var(--primary)" />
+          <StatTile icon={<Target size={20} />} label={score?.label ?? '正确率'} value={score?.value ?? `${Math.round(acc * 100)}%`} color="var(--primary)" />
           <StatTile icon={<Clock size={20} />} label="用时" value={fmtDuration(result.seconds).replace(' ', '')} color="var(--info)" />
         </div>
         {extra && <div className="mt-8 w-full text-left">{extra}</div>}
@@ -73,6 +77,7 @@ export function ResultScreen({
                 {wrong.map(({ ex, outcome }, i) => (
                   <div key={i} className="rounded-2xl border-2 border-line p-3">
                     <div className="text-xs font-black text-ink-3">{ex.title}</div>
+                    {questionText(ex) && <div className="es my-0.5 font-semibold">{questionText(ex)}</div>}
                     <div className="text-sm">
                       你的答案：<span className="es text-bad">{outcome.user || '（空）'}</span>
                     </div>
@@ -84,7 +89,7 @@ export function ResultScreen({
                     <button
                       type="button"
                       className="chip mt-2"
-                      onClick={() => openTutor(`请解释这道题我为什么错了：\n题型：${ex.title}\n我的答案：${outcome.user}\n正确答案：${outcome.expected}`)}
+                      onClick={() => openTutor(`请解释这道题我为什么错了：\n题型：${ex.title}${questionText(ex) ? `\n题目：${questionText(ex)}` : ''}\n我的答案：${outcome.user}\n正确答案：${outcome.expected}`)}
                     >
                       <Sparkles size={13} /> 问 AI
                     </button>

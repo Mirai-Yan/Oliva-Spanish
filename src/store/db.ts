@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Card } from 'ts-fsrs'
+import type { Paper } from '../lib/paper/types'
 
 export interface CardRow extends Card {
   wordId: string
@@ -20,9 +21,13 @@ export interface MistakeRow {
   /** serialized exercise for redo */
   ex: unknown
   prompt: string
+  /** the question itself (sentence / prompt), shown on the notebook card */
+  question?: string
   user: string
   correct: string
   unitId?: string
+  /** non-course source (photo paper) for grouping */
+  source?: { paperId: number; title: string }
   grammar: string[]
   words: string[]
   count: number
@@ -42,7 +47,7 @@ export interface NotebookRow {
 
 export interface ExamRow {
   id?: number
-  kind: 'unit' | 'custom' | 'placement' | 'level'
+  kind: 'unit' | 'custom' | 'placement' | 'level' | 'paper'
   title: string
   score: number
   correct: number
@@ -52,6 +57,48 @@ export interface ExamRow {
   createdAt: number
   unitIds?: string[]
   level?: string
+  /** papers: points earned out of the paper total */
+  points?: { earned: number; total: number }
+  paperId?: number
+}
+
+export interface PaperRow extends Paper {
+  id?: number
+  source: 'photo' | 'import' | 'paste'
+  createdAt: number
+  updatedAt: number
+}
+
+/** cropped photo regions a paper was generated from (kept apart so paper lists stay light) */
+export interface PaperImageRow {
+  id?: number
+  paperId: number
+  blob: Blob
+  label: string
+  createdAt: number
+}
+
+/** synced lyrics for a song: fetched from LRCLIB or synced by hand; never shipped with the app */
+export interface SongLyricsRow {
+  songId: string
+  source: 'lrclib' | 'manual'
+  lrc: string
+  lrclibId?: number
+  /** seconds added to every timestamp (calibration) */
+  offset: number
+  /** Chinese translation, one per lyric line */
+  zh?: string[]
+  summaryZh?: string
+  fetchedAt: number
+}
+
+/** songs the learner added by YouTube link */
+export interface UserSongRow {
+  id: string
+  title: string
+  artist: string
+  youtubeId: string
+  addedAt: number
 }
 
 export interface ChatMessage {
@@ -104,6 +151,10 @@ export const db = new Dexie('oliva') as Dexie & {
   aiDict: EntityTable<AiDictRow, 'key'>
   aiReadings: EntityTable<AiReadingRow, 'id'>
   tts: EntityTable<TtsRow, 'id'>
+  papers: EntityTable<PaperRow, 'id'>
+  paperImages: EntityTable<PaperImageRow, 'id'>
+  songLyrics: EntityTable<SongLyricsRow, 'songId'>
+  userSongs: EntityTable<UserSongRow, 'id'>
 }
 
 db.version(1).stores({
@@ -119,4 +170,12 @@ db.version(1).stores({
 
 db.version(2).stores({
   tts: 'id, createdAt',
+})
+
+db.version(3).stores({
+  exams: '++id, createdAt, kind, paperId',
+  papers: '++id, createdAt',
+  paperImages: '++id, paperId',
+  songLyrics: 'songId',
+  userSongs: 'id, addedAt',
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickDefaultModel } from './client'
+import { pickDefaultModel, extractJSON } from './client'
 
 const m = (...ids: string[]) => ids.map((id) => ({ id, name: id }))
 
@@ -13,5 +13,18 @@ describe('pickDefaultModel', () => {
   it('falls back to any usable flash, then null', () => {
     expect(pickDefaultModel(m('gemini-2.0-flash-001', 'gemini-2.5-pro'))).toBe('gemini-2.0-flash-001')
     expect(pickDefaultModel(m('gemini-2.5-pro'))).toBe(null)
+  })
+})
+
+describe('extractJSON', () => {
+  it('parses plain, fenced and wrapped JSON', () => {
+    expect(extractJSON('{"a":1}')).toEqual({ a: 1 })
+    expect(extractJSON('Aquí está:\n```json\n{"a":[1,2]}\n```\nSuerte')).toEqual({ a: [1, 2] })
+    expect(extractJSON('前面有说明 {"t":"una } llave","n":2} 后面也有')).toEqual({ t: 'una } llave', n: 2 })
+    expect(extractJSON('结果：[{"es":"casa"}]')).toEqual([{ es: 'casa' }])
+  })
+  it('throws a friendly error', () => {
+    expect(() => extractJSON('sin json')).toThrow(/无法解析/)
+    expect(() => extractJSON('{"a": ')).toThrow(/无法解析/)
   })
 })
