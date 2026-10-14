@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardCheck, House, MessagesSquare, Newspaper, Puzzle, RotateCcw, Settings, UserRound, type LucideIcon } from 'lucide-react'
+import { BookOpen, ClipboardCheck, House, MessagesSquare, Music, Newspaper, Puzzle, RotateCcw, Settings, UserRound, type LucideIcon } from 'lucide-react'
 
 export interface NavItem {
   to: string
@@ -16,6 +16,7 @@ export const NAV: NavItem[] = [
   { to: '/grammar', label: '语法', icon: Puzzle },
   { to: '/exam', label: '考试', icon: ClipboardCheck },
   { to: '/talk', label: '对话', icon: MessagesSquare },
+  { to: '/songs', label: '歌曲', icon: Music },
   { to: '/me', label: '我的', icon: UserRound, tab: true },
   { to: '/settings', label: '设置', icon: Settings },
 ]

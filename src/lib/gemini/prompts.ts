@@ -292,3 +292,24 @@ ${o.avoid?.length ? `\n下面这些题目已经出过了，不要重复：\n${o.
       : ''
   }`
 }
+
+// ---------- song lyrics ----------
+
+export const SONG_TRANSLATE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    summaryZh: { type: 'STRING', description: '一两句中文：这首歌讲的是什么' },
+    lines: { type: 'ARRAY', items: { type: 'STRING' }, description: '与编号歌词一一对应的中文翻译，数量必须相同' },
+  },
+  required: ['summaryZh', 'lines'],
+}
+
+export function songTranslatePrompt(title: string, artist: string, lines: string[], handoff = false): string {
+  return `下面是西班牙语歌曲《${title}》（${artist}）里的 ${lines.length} 句歌词，已编号。请把每一句翻译成自然、准确的简体中文，给中文母语的西语学习者对照学习用：
+- 逐句对应，一共 ${lines.length} 条翻译，第 i 条对应第 i 句；
+- 只写中文翻译，不要重复西语原文；
+- 俚语、方言和文化典故要译出真正的意思；
+- 再用一两句中文概括这首歌讲什么。
+${handoff ? '\n请按「编号. 中文翻译」的格式逐行输出，每句一行；最后单独一行写「主题：……」。\n' : ''}
+${lines.map((l, i) => `${i + 1}. ${l}`).join('\n')}`
+}

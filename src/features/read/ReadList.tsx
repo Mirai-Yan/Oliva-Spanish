@@ -1,9 +1,10 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Music } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getContent } from '../../content'
 import type { Level } from '../../content/types'
 import { PageHeader } from '../../components/PageHeader'
+import { SONGS } from '../../content/songs/catalog'
 import { useProgress } from '../../store/progress'
 
 export function ReadList() {
@@ -16,6 +17,16 @@ export function ReadList() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title="阅读" sub="分级短文：点词查义、整篇朗读、中西对照" />
+      <Link to="/songs" className="card mb-5 flex items-center gap-3 p-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-[#2b2108]">
+          <Music size={24} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-black">听歌学西语</span>
+          <span className="block text-sm text-ink-2">{SONGS.length} 首精选西语歌：同步歌词、中文翻译、逐句跟唱</span>
+        </span>
+        <ChevronRight size={18} className="text-ink-3" />
+      </Link>
       <div className="scrollbar-none mb-5 flex gap-1.5 overflow-x-auto">
         <button type="button" className={`chip shrink-0 ${lvl === 'all' ? 'chip-on' : ''}`} onClick={() => setLvl('all')}>
           全部 {c.readings.length}

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { BookOpen, ChevronRight, ClipboardCheck, Clock, Flame, MessagesSquare, Puzzle, Settings, Zap } from 'lucide-react'
+import { BookOpen, ChevronRight, ClipboardCheck, Clock, Flame, MessagesSquare, Music, Puzzle, Settings, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { PageHeader, Section } from '../../components/PageHeader'
@@ -88,6 +88,7 @@ export function MePage() {
     { to: '/grammar', label: '语法手册', icon: Puzzle },
     { to: '/exam', label: '考试与组卷', icon: ClipboardCheck },
     { to: '/talk', label: '情景对话', icon: MessagesSquare },
+    { to: '/songs', label: '听歌学西语', icon: Music },
     { to: '/words/conj', label: '动词变位查询', icon: BookOpen },
     { to: '/settings', label: '设置', icon: Settings },
   ]

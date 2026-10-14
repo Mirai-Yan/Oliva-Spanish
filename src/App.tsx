@@ -61,6 +61,12 @@ const PhotoPaperPage = page(
   "PhotoPaperPage",
 );
 const PaperPage = page(() => import("./features/paper/PaperPage"), "PaperPage");
+const SongsPage = page(() => import("./features/songs/SongsPage"), "SongsPage");
+const SongPage = page(() => import("./features/songs/SongPage"), "SongPage");
+const ArtistPage = page(
+  () => import("./features/songs/ArtistPage"),
+  "ArtistPage",
+);
 const PaperPrintPage = page(
   () => import("./features/paper/PaperPrintPage"),
   "PaperPrintPage",
@@ -137,6 +143,9 @@ export default function App() {
                 <Route path="/exam" element={<ExamPage />} />
                 <Route path="/exam/photo" element={<PhotoPaperPage />} />
                 <Route path="/exam/paper/:id" element={<PaperPage />} />
+                <Route path="/songs" element={<SongsPage />} />
+                <Route path="/songs/artist/:id" element={<ArtistPage />} />
+                <Route path="/songs/:id" element={<SongPage />} />
                 <Route path="/talk" element={<TalkPage />} />
                 <Route path="/me" element={<MePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
