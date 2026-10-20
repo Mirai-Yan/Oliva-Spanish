@@ -167,3 +167,18 @@ describe('region geometry', () => {
     expect(fitSize(800, 600, 1600)).toEqual({ w: 800, h: 600 })
   })
 })
+
+describe('large papers (up to 50 per type)', () => {
+  it('splits 50 matching pairs into groups of 3–5', () => {
+    const g = matchGroups(50)
+    expect(g.reduce((a, b) => a + b, 0)).toBe(50)
+    expect(g.every((n) => n >= 3 && n <= 5)).toBe(true)
+    expect(matchGroups(41).every((n) => n >= 3 && n <= 5)).toBe(true)
+  })
+  it('fits 150 questions to 100 points in half-point steps', () => {
+    const many = { ...config, sections: { match: { count: 50, points: 1 }, tf: { count: 50, points: 1 }, choice: { count: 50, points: 1 }, cloze: { count: 0, points: 1 }, listen: { count: 0, points: 1 } } }
+    const fitted = fitTotal(many)
+    expect(Object.values(fitted.sections).every((s) => s.points >= 0.5)).toBe(true)
+    expect(configTotal(fitted)).toBeGreaterThanOrEqual(75)
+  })
+})

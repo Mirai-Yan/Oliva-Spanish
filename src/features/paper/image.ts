@@ -10,8 +10,9 @@ export interface Photo {
   regions: Rect[]
 }
 
-const WORK_MAX = 2200
-const CROP_MAX = 1600
+// sized so 100 photos stay comfortable in memory and in Gemini requests, while print stays legible
+const WORK_MAX = 1800
+const CROP_MAX = 1400
 
 function toBlob(canvas: HTMLCanvasElement, quality = 0.85): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('无法生成图片'))), 'image/jpeg', quality))
@@ -45,19 +46,19 @@ export async function loadPhoto(file: Blob): Promise<Photo> {
     c.width = w
     c.height = h
     c.getContext('2d')!.drawImage(img.src, 0, 0, w, h)
-    const blob = await toBlob(c, 0.88)
+    const blob = await toBlob(c, 0.85)
     return { id: Math.random().toString(36).slice(2), blob, url: URL.createObjectURL(blob), w, h, regions: [] }
   } finally {
     img.close()
   }
 }
 
-/** Crop one region (or the whole photo) to a JPEG no longer than 1600 px. */
-export async function cropPhoto(p: Photo, r?: Rect): Promise<Blob> {
+/** Crop one region (or the whole photo) to a JPEG no longer than `max` px. */
+export async function cropPhoto(p: Pick<Photo, 'blob'>, r?: Rect, max = CROP_MAX, quality = 0.82): Promise<Blob> {
   const img = await decode(p.blob)
   try {
     const box = r ? pixelBox(r, img.w, img.h) : { sx: 0, sy: 0, sw: img.w, sh: img.h }
-    const { w, h } = fitSize(box.sw, box.sh, CROP_MAX)
+    const { w, h } = fitSize(box.sw, box.sh, max)
     const c = document.createElement('canvas')
     c.width = w
     c.height = h
@@ -65,21 +66,32 @@ export async function cropPhoto(p: Photo, r?: Rect): Promise<Blob> {
     ctx.fillStyle = '#fff'
     ctx.fillRect(0, 0, w, h)
     ctx.drawImage(img.src, box.sx, box.sy, box.sw, box.sh, 0, 0, w, h)
-    return await toBlob(c)
+    return await toBlob(c, quality)
   } finally {
     img.close()
   }
 }
 
+/** The selected regions of one photo (or the whole photo when nothing is selected). */
+export async function cropsOf(p: Photo, pi: number): Promise<{ blob: Blob; label: string }[]> {
+  if (!p.regions.length) return [{ blob: await cropPhoto(p), label: `第 ${pi + 1} 张照片（整张）` }]
+  const out: { blob: Blob; label: string }[] = []
+  for (const [ri, r] of p.regions.entries()) out.push({ blob: await cropPhoto(p, r), label: `第 ${pi + 1} 张照片 · 框选 ${ri + 1}` })
+  return out
+}
+
 /** All selected regions of all photos, labelled 图1、图2… */
-export async function cropAll(photos: Photo[]): Promise<{ blob: Blob; label: string }[]> {
+export async function cropAll(photos: Photo[], onProgress?: (done: number) => void): Promise<{ blob: Blob; label: string }[]> {
   const out: { blob: Blob; label: string }[] = []
   for (const [pi, p] of photos.entries()) {
-    if (!p.regions.length) out.push({ blob: await cropPhoto(p), label: `第 ${pi + 1} 张照片（整张）` })
-    else for (const [ri, r] of p.regions.entries()) out.push({ blob: await cropPhoto(p, r), label: `第 ${pi + 1} 张照片 · 框选 ${ri + 1}` })
+    out.push(...(await cropsOf(p, pi)))
+    onProgress?.(pi + 1)
   }
   return out
 }
+
+/** A smaller copy for the paper's "photos used" gallery. */
+export const viewCopy = (b: Blob) => cropPhoto({ blob: b }, undefined, 1000, 0.72)
 
 /**
  * Stitch crops into one tall numbered image, for uploading to the Gemini web app
@@ -149,3 +161,6 @@ export async function shareOrDownload(blob: Blob, name: string, title: string): 
   setTimeout(() => URL.revokeObjectURL(a.href), 2000)
   return 'downloaded'
 }
+
+/** Small square-ish preview for the photo grid (full-size copies would use too much memory at 100 photos). */
+export const makeThumb = (b: Blob) => cropPhoto({ blob: b }, undefined, 320, 0.7)

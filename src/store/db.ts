@@ -1,5 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Card } from 'ts-fsrs'
+import type { Rect } from '../lib/paper/geometry'
+import type { Material } from '../lib/paper/material'
 import type { Paper } from '../lib/paper/types'
 
 export interface CardRow extends Card {
@@ -65,6 +67,8 @@ export interface ExamRow {
 export interface PaperRow extends Paper {
   id?: number
   source: 'photo' | 'import' | 'paste'
+  /** text material read from many photos (large papers): regenerating a section uses this, not the images */
+  material?: Material
   createdAt: number
   updatedAt: number
 }
@@ -76,6 +80,22 @@ export interface PaperImageRow {
   blob: Blob
   label: string
   createdAt: number
+}
+
+/** a photo in the unfinished photo-paper wizard (auto-saved so 100 photos survive a reload) */
+export interface DraftPhotoRow {
+  id: string
+  order: number
+  blob: Blob
+  /** small preview for the grid */
+  thumb?: Blob
+  w: number
+  h: number
+  regions: Rect[]
+  /** material already read from this photo's regions (one per region, or one for the whole photo) */
+  material?: Material[]
+  /** JSON of the regions the material was read with; stale when the regions change */
+  materialKey?: string
 }
 
 /** synced lyrics for a song: fetched from LRCLIB or synced by hand; never shipped with the app */
@@ -155,6 +175,7 @@ export const db = new Dexie('oliva') as Dexie & {
   paperImages: EntityTable<PaperImageRow, 'id'>
   songLyrics: EntityTable<SongLyricsRow, 'songId'>
   userSongs: EntityTable<UserSongRow, 'id'>
+  draftPhotos: EntityTable<DraftPhotoRow, 'id'>
 }
 
 db.version(1).stores({
@@ -178,4 +199,8 @@ db.version(3).stores({
   paperImages: '++id, paperId',
   songLyrics: 'songId',
   userSongs: 'id, addedAt',
+})
+
+db.version(4).stores({
+  draftPhotos: 'id, order',
 })

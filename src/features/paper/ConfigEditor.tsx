@@ -4,6 +4,9 @@ import { SECTIONS, type PaperConfig, type SectionId } from '../../lib/paper/type
 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1))
 
+/** large papers (many photos) can hold up to 50 questions per type */
+export const MAX_PER_SECTION = 50
+
 function Stepper({ value, onChange, min, max, step, label }: { value: number; onChange: (v: number) => void; min: number; max: number; step: number; label: string }) {
   const set = (v: number) => onChange(Math.min(max, Math.max(min, Math.round(v / step) * step)))
   return (
@@ -11,7 +14,21 @@ function Stepper({ value, onChange, min, max, step, label }: { value: number; on
       <button type="button" className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40" onClick={() => set(value - step)} disabled={value <= min} aria-label={`${label}减少`}>
         <Minus size={16} />
       </button>
-      <span className="w-10 text-center text-lg font-black tabular-nums">{fmt(value)}</span>
+      <input
+        type="number"
+        inputMode="decimal"
+        aria-label={label}
+        className="w-12 rounded-lg bg-transparent text-center text-lg font-black tabular-nums outline-none focus:bg-surface-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        value={fmt(value)}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => {
+          const v = Number(e.target.value)
+          if (e.target.value !== '' && Number.isFinite(v)) set(v)
+        }}
+        onFocus={(e) => e.target.select()}
+      />
       <button type="button" className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40" onClick={() => set(value + step)} disabled={value >= max} aria-label={`${label}增加`}>
         <Plus size={16} />
       </button>
@@ -41,7 +58,7 @@ export function ConfigEditor({ config, onChange }: { config: PaperConfig; onChan
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-ink-3">{s.unit === '对' ? '对数' : '题数'}</span>
-                  <Stepper label={`${s.label}题数`} value={sec.count} min={0} max={s.id === 'match' ? 20 : 25} step={1} onChange={(v) => setSec(s.id, { count: v })} />
+                  <Stepper label={`${s.label}题数`} value={sec.count} min={0} max={MAX_PER_SECTION} step={1} onChange={(v) => setSec(s.id, { count: v })} />
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-ink-3">每{s.unit}</span>
@@ -58,7 +75,7 @@ export function ConfigEditor({ config, onChange }: { config: PaperConfig; onChan
         <div className="flex-1 font-black">
           共 {questions} 题 · 总分 <span className="text-2xl text-primary-ink">{fmt(total)}</span> 分
         </div>
-        {total !== 100 && questions > 0 && (
+        {total !== 100 && questions > 0 && questions * 0.5 <= 100 && (
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange(fitTotal(config))}>
             <Wand2 size={15} /> 按比例凑满 100 分
           </button>

@@ -1,5 +1,7 @@
 import { generateJSON, type GPart } from '../../lib/gemini/client'
-import { PAPER_SCHEMA, paperPrompt } from '../../lib/gemini/prompts'
+import { MATERIAL_SCHEMA, materialPrompt, PAPER_SCHEMA, paperPrompt } from '../../lib/gemini/prompts'
+import { materialToText, type Material } from '../../lib/paper/material'
+import type { PipelineDeps } from '../../lib/paper/pipeline'
 import { mergeQuestions, sanitizePaper, type SanitizeResult } from '../../lib/paper/sanitize'
 import { SECTIONS, type PaperConfig, type PaperQuestions, type SectionId } from '../../lib/paper/types'
 import { blobToBase64 } from './image'
@@ -53,11 +55,48 @@ export async function generatePaper(images: PaperImage[], config: PaperConfig, s
   }
 }
 
-/** Regenerate one section of an existing paper (keeps the other sections). */
-export async function regenerateSection(images: PaperImage[], config: PaperConfig, section: SectionId, current: PaperQuestions, signal?: AbortSignal): Promise<PaperQuestions> {
+/** Up to this many regions go to Gemini in one request; more are read in batches first (see pipeline). */
+export const DIRECT_MAX = 8
+
+/** Real Gemini calls for the large-paper pipeline. `materialText` is read lazily (it exists only after stage A). */
+export function geminiDeps(config: PaperConfig, materialText: () => string): PipelineDeps {
+  return {
+    extract: async (images, signal) =>
+      generateJSON<unknown>({
+        messages: [{ role: 'user', text: materialPrompt({ images: images.length, level: config.level, note: config.note }), parts: await imageParts(images) }],
+        schema: MATERIAL_SCHEMA,
+        temperature: 0.2,
+        timeoutMs: 150_000,
+        signal,
+      }),
+    generate: (section, count, avoid, signal) =>
+      generateJSON<unknown>({
+        messages: [{ role: 'user', text: paperPrompt({ level: config.level, note: config.note, counts: { [section]: count }, images: 0, avoid, materialText: materialText() }) }],
+        schema: PAPER_SCHEMA,
+        temperature: 0.6,
+        timeoutMs: 150_000,
+        signal,
+      }),
+  }
+}
+
+/**
+ * Regenerate one section of an existing paper (keeps the other sections):
+ * from the stored text material for large papers, otherwise from the images.
+ */
+export async function regenerateSection(
+  src: { images: PaperImage[]; material?: Material },
+  config: PaperConfig,
+  section: SectionId,
+  current: PaperQuestions,
+  signal?: AbortSignal,
+): Promise<PaperQuestions> {
   const want = { [section]: config.sections[section].count } as Partial<Record<SectionId, number>>
   const avoid = sentencesOf({ ...current, [section]: [] } as PaperQuestions)
-  const fresh = sanitizePaper(await ask(images, config, want, avoid, signal), config)
+  const raw = src.material
+    ? await geminiDeps(config, () => materialToText(src.material!)).generate(section, config.sections[section].count, avoid, signal)
+    : await ask(src.images, config, want, avoid, signal)
+  const fresh = sanitizePaper(raw, config)
   return { ...current, [section]: fresh.paper.questions[section] }
 }
 

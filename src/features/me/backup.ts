@@ -56,5 +56,5 @@ function reviveCard(r: Record<string, unknown>) {
 }
 
 export async function resetAll() {
-  await Promise.all([...TABLES.filter((t) => t !== 'aiDict'), 'paperImages'].map((t) => db.table(t).clear()))
+  await Promise.all([...TABLES.filter((t) => t !== 'aiDict'), 'paperImages', 'draftPhotos'].map((t) => db.table(t).clear()))
 }

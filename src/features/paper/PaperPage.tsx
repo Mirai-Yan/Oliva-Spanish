@@ -62,7 +62,7 @@ export function PaperPage() {
     setBusy(s)
     try {
       const imgs = (images ?? []).map((im) => ({ blob: im.blob, label: im.label }))
-      setEditing(await regenerateSection(imgs, row.config, s, editing))
+      setEditing(await regenerateSection({ images: imgs, material: row.material }, row.config, s, editing))
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'warn')
     } finally {
@@ -153,7 +153,7 @@ export function PaperPage() {
           paper={paper}
           onChange={(q) => setEditing(q)}
           showAnswers={showAnswers || !!editing}
-          onRegenerate={editing && hasAI && images?.length ? regen : undefined}
+          onRegenerate={editing && hasAI && (images?.length || row.material) ? regen : undefined}
           busy={busy}
         />
         {editing && (

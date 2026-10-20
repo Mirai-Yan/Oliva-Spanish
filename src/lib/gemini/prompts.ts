@@ -261,18 +261,26 @@ export function paperPrompt(o: {
   avoid?: string[]
   /** no structured output available (Gemini web app): ask for a JSON code block */
   handoff?: boolean
+  /** large papers: text material extracted from many photos, used instead of the images */
+  materialText?: string
 }): string {
   const sections = (Object.keys(PAPER_RULES) as (keyof typeof PAPER_RULES)[]).map((k) => {
     const n = o.counts[k] ?? 0
     return n > 0 ? `- ${PAPER_RULES[k](n)}` : `- ${k}：这类题不要出，返回空数组 []。`
   })
+  const source = o.materialText
+    ? `下面是从学生拍的课本 / 讲义照片里整理出的学习材料（〔图N〕表示出自第几张图）。只考这些材料里的单词、短语和语法点；可以用这些词汇和语法编写新句子。题目要尽量均匀地覆盖不同图片的内容，不要集中在前几张图。
+
+${o.materialText}
+`
+    : ''
   return `你是一位西班牙语老师，要给一名中文母语的学生出一份测验卷。
-${o.images ? `学生上传了 ${o.images} 张课本或讲义的图片（${o.handoff ? '按顺序编号' : '每张图后面有编号和说明'}），只考图片里框选或出现的内容：图中的单词、短语和语法点。图中例句不够时，可以用图中的词汇和语法编写新的句子，但不要引入超出图片范围太多的新词。` : '根据下面的范围说明出题。'}
+${source}${o.materialText ? '' : o.images ? `学生上传了 ${o.images} 张课本或讲义的图片（${o.handoff ? '按顺序编号' : '每张图后面有编号和说明'}），只考图片里框选或出现的内容：图中的单词、短语和语法点。图中例句不够时，可以用图中的词汇和语法编写新的句子，但不要引入超出图片范围太多的新词。` : '根据下面的范围说明出题。'}
 ${o.note ? `学生对范围的补充说明：${o.note}\n` : ''}学生水平：${o.level}。使用西班牙本土的西班牙语（包括 vosotros），所有解析都用简体中文。
 
 题目要求：
 ${sections.join('\n')}
-${o.avoid?.length ? `\n下面这些题目已经出过了，不要重复：\n${o.avoid.slice(0, 60).map((s) => `· ${s}`).join('\n')}\n` : ''}
+${o.avoid?.length ? `\n下面这些题目已经出过了，不要重复：\n${o.avoid.slice(0, 150).map((s) => `· ${s}`).join('\n')}\n` : ''}
 另外给出 title（简短的试卷标题）和 scope（一句中文，说明考查范围）。${
     o.handoff
       ? `
@@ -312,4 +320,46 @@ export function songTranslatePrompt(title: string, artist: string, lines: string
 - 再用一两句中文概括这首歌讲什么。
 ${handoff ? '\n请按「编号. 中文翻译」的格式逐行输出，每句一行；最后单独一行写「主题：……」。\n' : ''}
 ${lines.map((l, i) => `${i + 1}. ${l}`).join('\n')}`
+}
+
+// ---------- large papers: stage A, read photos into study material ----------
+
+export const MATERIAL_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    vocab: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: { es: { type: 'STRING', description: '西语单词或短语（名词带定冠词）' }, zh: { type: 'STRING' }, src: { type: 'INTEGER', description: '出自第几张图（本次请求里的编号）' } },
+        required: ['es', 'zh', 'src'],
+      },
+    },
+    grammar: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: { point: { type: 'STRING', description: '语法点名称，例如「estar + 副动词」' }, note: { type: 'STRING', description: '一句中文说明' }, src: { type: 'INTEGER' } },
+        required: ['point', 'src'],
+      },
+    },
+    sentences: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: { es: { type: 'STRING', description: '图中出现的西语句子，照原文抄录' }, zh: { type: 'STRING' }, src: { type: 'INTEGER' } },
+        required: ['es', 'src'],
+      },
+    },
+  },
+  required: ['vocab', 'grammar', 'sentences'],
+}
+
+export function materialPrompt(o: { images: number; level: string; note: string }): string {
+  return `学生拍了 ${o.images} 张西班牙语课本或讲义的图片（每张图后面有编号），准备用来出一份测验卷。请把图里的学习内容整理出来：
+- vocab：图中出现的西语单词和短语（生词表、课文、例句里的重点词），每个配简洁的中文意思；名词带定冠词。
+- grammar：图中讲到或明显在练的语法点，每个配一句中文说明。
+- sentences：图中的西语句子（课文、对话、例句），照原文抄录，配中文意思。
+每一条都用 src 标明出自第几张图（1 到 ${o.images}）。只整理图片里真实出现的内容，不要自己添加；看不清的部分就跳过。
+学生水平：${o.level}。${o.note ? `学生对范围的补充说明：${o.note}` : ''}`
 }
