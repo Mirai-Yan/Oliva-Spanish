@@ -2,6 +2,8 @@
 
 从零到 C1 的西班牙语互动学习网站（手机 / 平板 / 电脑自适应，可安装为 PWA）。
 
+> **English:** Oliva is an open-source, Duolingo-style Spanish course for Chinese speakers, from zero to C1 (Spain Spanish with Latin American notes). It runs entirely in the browser — a static React + TypeScript site with no backend; progress stays on the device. Optional AI features use the learner's own Google Gemini API key. Includes listening / speaking / reading / writing practice, grammar with etymology, graded readings, spaced repetition, exams, AI-generated papers from textbook photos, and learning Spanish through songs.
+
 ## 运行
 
 ```bash
@@ -82,3 +84,12 @@ npm test         # 变位引擎、答案判定、课程内容校验
 每个人的学习进度和 Gemini Key 只保存在各自的浏览器里，互不影响。
 
 课程内容为原创，按 CEFR 与塞万提斯学院课程大纲（PCIC）编排。
+
+## 开源许可
+
+- 代码：[MIT](LICENSE)
+- 课程内容（`src/content/`）：[CC BY-NC-SA 4.0](CONTENT_LICENSE.md)，可以分享和改编，但需要署名、不能商用、改编后以相同许可发布
+- 本仓库不包含任何歌词、音频或视频；第三方内容（YouTube、LRCLIB、维基百科、iTunes）的版权归各自所有者
+
+欢迎提 Issue 和 Pull Request：发现读音、拼写、语法讲解或词源的错误，或者想补充内容，都可以直接提出。提交前请运行 `npm test`（包含内容结构检查和 Hunspell 拼写检查）。
+

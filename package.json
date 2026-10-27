@@ -1,7 +1,9 @@
 {
   "name": "oliva",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "从零到 C1 的西班牙语互动学习网站 · A Spanish course for Chinese speakers, from zero to C1",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
