@@ -74,16 +74,15 @@ npm test         # 变位引擎、答案判定、课程内容校验
 
 ## 部署（分享给朋友）
 
-`localhost` 只在自己电脑上有效，要让别人打开，需要把构建好的 `dist/` 放到静态托管上：
+`localhost` 只在自己电脑上有效，要让别人打开，需要放到静态托管上。
 
-1. `npm run build`
-2. 打开 [app.netlify.com/drop](https://app.netlify.com/drop)，把 `dist` 文件夹拖进去，得到一个公开链接
-3. 注册 / 登录并认领（claim）这个项目，网站才会长期保留；可以在项目设置里改网址前缀
-4. 以后更新：重新 `npm run build`，再把新的 `dist` 拖到该项目的 Deploys 页面
+**推荐：Netlify 连接 GitHub，自动部署**
+
+仓库里的 `netlify.toml` 已经写好了构建设置（先跑测试，再执行 `npm run build`，发布 `dist/` 目录，Node 22）。在 Netlify 里把站点连接到这个 GitHub 仓库后，每次推送到 `main` 分支都会自动构建并上线；测试不通过时不会上线。
+
+**手动方式**：`npm run build` 后，把 `dist` 文件夹拖到 Netlify 项目的 Deploys 页面。
 
 每个人的学习进度和 Gemini Key 只保存在各自的浏览器里，互不影响。
-
-课程内容为原创，按 CEFR 与塞万提斯学院课程大纲（PCIC）编排。
 
 ## 开源许可
 
